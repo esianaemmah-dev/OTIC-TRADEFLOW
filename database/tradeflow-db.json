@@ -1,0 +1,170 @@
+{
+  "quotations": [
+    {
+      "id": "TFQ-005526-3852",
+      "supplierName": "ABC Electronics",
+      "supplierPhone": "0700000000",
+      "buyerName": "Emmah",
+      "buyerPhone": "0750000000",
+      "items": [
+        {
+          "name": "Laptop",
+          "quantity": 1,
+          "price": 1500000
+        }
+      ],
+      "totalAmount": 1500000,
+      "status": "created",
+      "createdAt": "2026-07-11T10:50:05.526Z"
+    },
+    {
+      "id": "TFQ-554154-2486",
+      "supplierName": "ABC electronics",
+      "supplierPhone": "+256 765832347",
+      "buyerName": "Esiana Emmanuel",
+      "buyerPhone": "+256 768556512",
+      "items": [
+        {
+          "name": "Dell XPS 5 Laptop",
+          "quantity": 1,
+          "price": 1500000
+        }
+      ],
+      "totalAmount": 1500000,
+      "status": "created",
+      "createdAt": "2026-07-11T11:32:34.154Z"
+    },
+    {
+      "id": "TFQ-588497-8196",
+      "supplierName": "Emma Electronics",
+      "supplierPhone": "0786544143",
+      "buyerName": "Esiana Emmanuel",
+      "buyerPhone": "0787381464",
+      "items": [
+        {
+          "name": "Dell XPS laptop",
+          "quantity": 1,
+          "price": 1500000
+        }
+      ],
+      "totalAmount": 1500000,
+      "status": "created",
+      "createdAt": "2026-07-11T11:49:48.497Z"
+    },
+    {
+      "id": "TFQ-308760-8748",
+      "supplierName": "E SQUARE GROUP",
+      "supplierPhone": "075898073",
+      "buyerName": "ESIANA EMMANUEL",
+      "buyerPhone": "78787349201",
+      "items": [
+        {
+          "name": "DELL XPS 5 LAPTOP",
+          "quantity": 1,
+          "price": 1500000
+        }
+      ],
+      "totalAmount": 1500000,
+      "status": "created",
+      "createdAt": "2026-07-11T12:18:28.760Z"
+    }
+  ],
+  "financeRequests": [
+    {
+      "id": "TFR-537279-5554",
+      "quotationId": "TFQ-005526-3852",
+      "supplierName": "ABC Electronics",
+      "supplierPhone": "0700000000",
+      "buyerName": "Emmah",
+      "buyerPhone": "0750000000",
+      "totalAmount": 1500000,
+      "buyerAvailableAmount": 500000,
+      "requestedFinanceAmount": 1000000,
+      "repaymentPeriod": "3 months",
+      "buyerReason": "I need the laptop for business work and can repay in installments.",
+      "status": "approved",
+      "riskLevel": "manual_review_required",
+      "assignedFinancier": "Demo SACCO Partner",
+      "adminNotes": "Buyer and supplier require verification before disbursement.",
+      "createdAt": "2026-07-11T10:58:57.279Z",
+      "updatedAt": "2026-07-11T11:33:21.315Z"
+    },
+    {
+      "id": "TFR-582248-6389",
+      "quotationId": "TFQ-005526-3852",
+      "supplierName": "ABC Electronics",
+      "supplierPhone": "0700000000",
+      "buyerName": "Emmah",
+      "buyerPhone": "0750000000",
+      "totalAmount": 1500000,
+      "buyerAvailableAmount": 500000,
+      "requestedFinanceAmount": 1000000,
+      "repaymentPeriod": "3 months",
+      "buyerReason": "I need the laptop for business work and can repay in installments.",
+      "status": "approved",
+      "riskLevel": "manual_review_required",
+      "assignedFinancier": "Demo SACCO Partner",
+      "adminNotes": "Buyer and supplier require manual verification before disbursement.",
+      "createdAt": "2026-07-11T10:59:42.248Z",
+      "updatedAt": "2026-07-11T11:53:43.495Z"
+    },
+    {
+      "id": "TFR-572162-3644",
+      "quotationId": "TFQ-554154-2486",
+      "supplierName": "ABC electronics",
+      "supplierPhone": "+256 765832347",
+      "buyerName": "Esiana Emmanuel",
+      "buyerPhone": "+256 768556512",
+      "totalAmount": 1500000,
+      "buyerAvailableAmount": 1000000,
+      "requestedFinanceAmount": 500000,
+      "repaymentPeriod": "2 months",
+      "buyerReason": "Purchase a laptop for work",
+      "status": "pending_review",
+      "riskLevel": "manual_review_required",
+      "assignedFinancier": null,
+      "adminNotes": "",
+      "createdAt": "2026-07-11T11:32:52.162Z"
+    },
+    {
+      "id": "TFR-744569-3272",
+      "quotationId": "TFQ-588497-8196",
+      "supplierName": "Emma Electronics",
+      "supplierPhone": "0786544143",
+      "buyerName": "Esiana Emmanuel",
+      "buyerPhone": "0787381464",
+      "totalAmount": 1500000,
+      "buyerAvailableAmount": 1000000,
+      "requestedFinanceAmount": 500000,
+      "repaymentPeriod": "2 months",
+      "buyerReason": "Buy a laptop for daily school activity and work",
+      "status": "approved",
+      "riskLevel": "manual_review_required",
+      "assignedFinancier": "Demo SACCO Partner",
+      "adminNotes": "Buyer and supplier require verification before disbursement.",
+      "createdAt": "2026-07-11T11:52:24.569Z",
+      "updatedAt": "2026-07-11T12:20:45.513Z"
+    },
+    {
+      "id": "TFR-426343-7234",
+      "quotationId": "TFQ-308760-8748",
+      "supplierName": "E SQUARE GROUP",
+      "supplierPhone": "075898073",
+      "buyerName": "ESIANA EMMANUEL",
+      "buyerPhone": "78787349201",
+      "totalAmount": 1500000,
+      "buyerAvailableAmount": 1000000,
+      "requestedFinanceAmount": 500000,
+      "repaymentPeriod": "1 month",
+      "buyerReason": "Buy a laptop for work and school",
+      "status": "more_information_required",
+      "riskLevel": "manual_review_required",
+      "assignedFinancier": null,
+      "adminNotes": "More buyer or supplier verification information is required.",
+      "createdAt": "2026-07-11T12:20:26.344Z",
+      "updatedAt": "2026-07-11T12:20:40.054Z"
+    }
+  ],
+  "suppliers": [],
+  "buyers": []
+}
