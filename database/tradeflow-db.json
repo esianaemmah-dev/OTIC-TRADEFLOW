@@ -67,6 +67,57 @@
       "totalAmount": 1500000,
       "status": "created",
       "createdAt": "2026-07-11T12:18:28.760Z"
+    },
+    {
+      "id": "TFQ-930834-0862",
+      "supplierName": "esiana emmanuel",
+      "supplierPhone": "075543134",
+      "buyerName": "Anita Annet Among",
+      "buyerPhone": "078924802",
+      "items": [
+        {
+          "name": "Rolls Royce Cullinan",
+          "quantity": 1,
+          "price": 600000000
+        }
+      ],
+      "totalAmount": 600000000,
+      "status": "created",
+      "createdAt": "2026-07-11T12:45:30.834Z"
+    },
+    {
+      "id": "TFQ-506031-4049",
+      "supplierName": "ABC Electronics",
+      "supplierPhone": "0790872387",
+      "buyerName": "Emmah",
+      "buyerPhone": "0782634512",
+      "items": [
+        {
+          "name": "Dell XPS 5 Laptop",
+          "quantity": 1,
+          "price": 1500000
+        }
+      ],
+      "totalAmount": 1500000,
+      "status": "created",
+      "createdAt": "2026-07-11T13:28:26.031Z"
+    },
+    {
+      "id": "TFQ-823539-4542",
+      "supplierName": "Smartec Electronics",
+      "supplierPhone": "076865545",
+      "buyerName": "CylBit Techniologies",
+      "buyerPhone": "0299702347",
+      "items": [
+        {
+          "name": "Hisense Washing Machine",
+          "quantity": 1,
+          "price": 1500000
+        }
+      ],
+      "totalAmount": 1500000,
+      "status": "created",
+      "createdAt": "2026-07-11T13:50:23.539Z"
     }
   ],
   "financeRequests": [
@@ -163,8 +214,77 @@
       "adminNotes": "More buyer or supplier verification information is required.",
       "createdAt": "2026-07-11T12:20:26.344Z",
       "updatedAt": "2026-07-11T12:20:40.054Z"
+    },
+    {
+      "id": "TFR-967290-8793",
+      "quotationId": "TFQ-930834-0862",
+      "supplierName": "esiana emmanuel",
+      "supplierPhone": "075543134",
+      "buyerName": "Anita Annet Among",
+      "buyerPhone": "078924802",
+      "totalAmount": 600000000,
+      "buyerAvailableAmount": 450000000,
+      "requestedFinanceAmount": 150000000,
+      "repaymentPeriod": "12 months",
+      "buyerReason": "I wanna show Ugandans the goodness of the Lord",
+      "status": "approved",
+      "assignedFinancier": "Demo SACCO Partner",
+      "adminNotes": "Buyer and supplier require verification before disbursement.",
+      "createdAt": "2026-07-11T12:46:07.290Z",
+      "riskScore": 60,
+      "riskLevel": "medium",
+      "riskReasons": [
+        "Requested finance amount is above 5,000,000 UGX.",
+        "Repayment period is 6 months or more."
+      ],
+      "recommendedFinancierType": "SACCO / Microfinance Partner",
+      "updatedAt": "2026-07-11T12:46:49.885Z"
     }
   ],
   "suppliers": [],
-  "buyers": []
+  "buyers": [],
+  "financiers": [
+    {
+      "id": "FIN-SACCO-001",
+      "name": "Demo SACCO Partner",
+      "type": "SACCO",
+      "maxAmount": 3000000,
+      "interestRate": "3% monthly",
+      "repaymentPeriod": "1-3 months",
+      "benefits": [
+        "Fast approval",
+        "Good for small traders",
+        "Flexible repayment"
+      ],
+      "riskAppetite": "medium"
+    },
+    {
+      "id": "FIN-MICRO-001",
+      "name": "Microfinance Partner",
+      "type": "Microfinance",
+      "maxAmount": 10000000,
+      "interestRate": "4% monthly",
+      "repaymentPeriod": "3-6 months",
+      "benefits": [
+        "Supports SMEs",
+        "Higher limits",
+        "Business-friendly terms"
+      ],
+      "riskAppetite": "medium"
+    },
+    {
+      "id": "FIN-BANK-001",
+      "name": "Bank Trade Finance Partner",
+      "type": "Bank",
+      "maxAmount": 50000000,
+      "interestRate": "Negotiated",
+      "repaymentPeriod": "3-12 months",
+      "benefits": [
+        "Large transaction support",
+        "Lower risk pricing",
+        "Formal trade finance"
+      ],
+      "riskAppetite": "low"
+    }
+  ]
 }

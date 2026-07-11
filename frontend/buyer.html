@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buyer Portal | TradeFlow</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="buyer">
+  <div class="page-shell">
+    <nav class="top-nav" aria-label="Primary navigation">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">TF</span>
+        <span><strong>TradeFlow</strong><small>Buyer</small></span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="supplier.html">Supplier Portal</a>
+        <a href="financier.html">Financier Portal</a>
+        <a href="admin.html">Admin Portal</a>
+      </div>
+      <a class="nav-demo-button" href="#buyer-finance" data-scroll>Get Finance</a>
+    </nav>
+
+    <main class="role-layout">
+      <section class="page-hero compact-hero">
+        <p class="hero-badge">BUYER PORTAL</p>
+        <h1>Review your quotation and choose a financier.</h1>
+        <p class="hero-subtext">Open this page with a supplier link like <strong>buyer.html?quotationId=TFQ-...</strong>.</p>
+        <div class="backend-pill">
+          <span class="pulse-dot" aria-hidden="true"></span>
+          <span id="apiStatus">Checking backend...</span>
+        </div>
+      </section>
+
+      <section class="buyer-flow" id="buyer-finance">
+        <article class="workflow-card">
+          <div class="section-intro">
+            <p class="section-kicker">Quotation Details</p>
+            <h2>Trade context</h2>
+          </div>
+          <div id="buyerQuotationMessage" class="message" hidden></div>
+          <div id="buyerQuotationDetails" class="result-panel"></div>
+        </article>
+
+        <article class="workflow-card">
+          <div class="section-intro">
+            <p class="section-kicker">Financing Gap</p>
+            <h2>Buyer contribution</h2>
+          </div>
+          <div class="stacked-form">
+            <label>Amount currently available<input type="number" id="buyerAvailableAmount" min="0" step="1" /></label>
+            <div class="gap-card">
+              <span>Requested finance amount</span>
+              <strong id="requestedFinanceAmountDisplay">UGX 0</strong>
+            </div>
+            <button id="showFinanciersBtn" type="button" class="primary-action">Show Recommended Financiers</button>
+          </div>
+          <div id="financierRecommendationMessage" class="message" hidden></div>
+          <div id="recommendedFinanciers" class="card-grid"></div>
+        </article>
+
+        <article class="workflow-card full-width-card" id="verificationCard" hidden>
+          <div class="section-intro">
+            <p class="section-kicker">Buyer Verification</p>
+            <h2>Submit finance request</h2>
+            <p id="selectedFinancierSummary"></p>
+          </div>
+          <form id="buyerFinanceForm" class="stacked-form">
+            <div class="form-grid">
+              <label>National ID or NIN<input type="text" id="nationalIdOrNIN" required /></label>
+              <label>Phone number<input type="tel" id="phoneNumber" required /></label>
+              <label>Location<input type="text" id="location" required /></label>
+              <label>Income source<input type="text" id="incomeSource" required /></label>
+              <label>Monthly income estimate<input type="number" id="monthlyIncomeEstimate" min="0" step="1" required /></label>
+              <label class="full-span">Business purpose<textarea id="businessPurpose" rows="4" required></textarea></label>
+              <label class="consent-row full-span">
+                <input type="checkbox" id="consent" required />
+                <span>I consent to TradeFlow sharing this request with the selected financier for verification.</span>
+              </label>
+            </div>
+            <button type="submit" class="primary-action">Submit Finance Request</button>
+          </form>
+          <div id="financeMessage" class="message" hidden></div>
+          <div id="financeResult" class="result-panel" hidden></div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

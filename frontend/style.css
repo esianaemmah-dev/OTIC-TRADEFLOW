@@ -299,6 +299,17 @@ h3 {
   font-weight: 800;
 }
 
+.file-warning {
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border: 1px solid rgba(245, 158, 11, 0.38);
+  border-radius: 18px;
+  background: #fff1ce;
+  color: #7a4600;
+  font-weight: 850;
+  line-height: 1.45;
+}
+
 .pulse-dot {
   width: 10px;
   height: 10px;
@@ -755,6 +766,212 @@ textarea:focus {
   color: var(--purple);
 }
 
+.risk-level-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 11px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.risk-level-low {
+  background: #daf8e4;
+  color: #166534;
+}
+
+.risk-level-medium {
+  background: #fff1ce;
+  color: #8a5200;
+}
+
+.risk-level-high {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.risk-level-not-scored {
+  background: rgba(7, 11, 31, 0.08);
+  color: #2f2942;
+}
+
+.risk-reasons {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding-left: 18px;
+  color: #3f3a4f;
+  line-height: 1.45;
+}
+
+.role-layout {
+  padding: 54px 0 0;
+}
+
+.landing-hero {
+  min-height: 720px;
+}
+
+.page-hero {
+  max-width: 920px;
+  padding: 54px 0 28px;
+}
+
+.compact-hero h1 {
+  max-width: 920px;
+  font-size: clamp(2.6rem, 6vw, 5rem);
+}
+
+.role-stack {
+  display: grid;
+  gap: 14px;
+}
+
+.role-link-card {
+  display: grid;
+  gap: 6px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.74);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.64);
+  text-decoration: none;
+  box-shadow: 0 12px 30px rgba(15, 11, 47, 0.06);
+}
+
+.role-link-card:hover {
+  transform: translateY(-2px);
+}
+
+.role-link-card strong {
+  color: var(--navy);
+  font-size: 1rem;
+}
+
+.role-link-card span {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.inline-lookup {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+}
+
+.buyer-flow {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 18px;
+}
+
+.full-width-card {
+  grid-column: 1 / -1;
+}
+
+.gap-card {
+  padding: 18px;
+  border: 1px solid rgba(7, 11, 31, 0.08);
+  border-radius: 22px;
+  background: var(--orange-soft);
+}
+
+.gap-card span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.gap-card strong {
+  display: block;
+  color: var(--navy);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.financier-card .details-grid {
+  grid-template-columns: 1fr;
+}
+
+.selector-label {
+  min-width: 280px;
+}
+
+.consent-row,
+.check-row {
+  display: flex;
+  grid-template-columns: none;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.45;
+}
+
+.consent-row input,
+.check-row input {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  min-height: 18px;
+  margin-top: 2px;
+}
+
+.checklist {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid rgba(7, 11, 31, 0.08);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.48);
+}
+
+.notes-field {
+  margin-top: 16px;
+}
+
+.notes-field textarea {
+  min-height: 86px;
+}
+
+.status-pending-verification,
+.status-approved-for-financier-review,
+.status-verified-by-tradeflow {
+  background: #ece7ff;
+  color: var(--purple);
+}
+
+.status-approved-by-financier,
+.status-paid-to-supplier,
+.status-completed {
+  background: #daf8e4;
+  color: #166534;
+}
+
+.status-rejected-by-tradeflow,
+.status-rejected-by-financier {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-delivery-pending,
+.status-repayment-active {
+  background: #fff1ce;
+  color: #8a5200;
+}
+
 .request-actions {
   margin-top: 16px;
 }
@@ -775,7 +992,9 @@ textarea:focus {
 
   .hero-section,
   .portal-grid,
-  .risk-grid {
+  .risk-grid,
+  .buyer-flow,
+  .card-grid {
     grid-template-columns: 1fr;
   }
 
@@ -830,8 +1049,11 @@ textarea:focus {
 
   .admin-heading,
   .request-header,
-  .risk-strip {
+  .risk-strip,
+  .inline-lookup,
+  .checklist {
     display: grid;
+    grid-template-columns: 1fr;
   }
 
   .risk-track {

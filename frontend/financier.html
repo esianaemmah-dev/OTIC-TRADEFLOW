@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Financier Portal | TradeFlow</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="financier">
+  <div class="page-shell">
+    <nav class="top-nav" aria-label="Primary navigation">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">TF</span>
+        <span><strong>TradeFlow</strong><small>Financier</small></span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="supplier.html">Supplier Portal</a>
+        <a href="buyer.html">Buyer Portal</a>
+        <a href="admin.html">Admin Portal</a>
+      </div>
+      <a class="nav-demo-button" href="#financier-workbench" data-scroll>Review Queue</a>
+    </nav>
+
+    <main class="role-layout">
+      <section class="page-hero compact-hero">
+        <p class="hero-badge">FINANCIER PORTAL</p>
+        <h1>Review assigned funding requests.</h1>
+        <p class="hero-subtext">Select a demo financier, review verified requests, make funding decisions, and mark simulated supplier payment.</p>
+        <div class="backend-pill">
+          <span class="pulse-dot" aria-hidden="true"></span>
+          <span id="apiStatus">Checking backend...</span>
+        </div>
+      </section>
+
+      <section class="admin-section" id="financier-workbench">
+        <div class="admin-heading">
+          <div class="section-intro">
+            <p class="section-kicker">Funding Queue</p>
+            <h2>Assigned requests</h2>
+          </div>
+          <label class="selector-label">
+            Demo financier
+            <select id="financierSelector">
+              <option value="">Select financier</option>
+            </select>
+          </label>
+        </div>
+        <div id="financierMessage" class="message" hidden></div>
+        <div id="financierRequests" class="admin-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

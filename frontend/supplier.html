@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Supplier Portal | TradeFlow</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="supplier">
+  <div class="page-shell">
+    <nav class="top-nav" aria-label="Primary navigation">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">TF</span>
+        <span><strong>TradeFlow</strong><small>Supplier</small></span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="buyer.html">Buyer Portal</a>
+        <a href="financier.html">Financier Portal</a>
+        <a href="admin.html">Admin Portal</a>
+      </div>
+      <a class="nav-demo-button" href="#supplier-form" data-scroll>Create Quote</a>
+    </nav>
+
+    <main class="role-layout">
+      <section class="page-hero compact-hero">
+        <p class="hero-badge">SUPPLIER PORTAL</p>
+        <h1>Create a quotation and track financing progress.</h1>
+        <p class="hero-subtext">
+          Generate a buyer link, share it on WhatsApp, and monitor whether financing has moved through verification, financier review, and payment.
+        </p>
+        <div class="backend-pill">
+          <span class="pulse-dot" aria-hidden="true"></span>
+          <span id="apiStatus">Checking backend...</span>
+        </div>
+      </section>
+
+      <section class="portal-grid">
+        <article class="workflow-card" id="supplier-form">
+          <div class="section-intro">
+            <p class="section-kicker">Quotation Builder</p>
+            <h2>Supplier creates quotation</h2>
+          </div>
+          <form id="quotationForm" class="stacked-form">
+            <div class="form-grid">
+              <label>Supplier name<input type="text" id="supplierName" required /></label>
+              <label>Supplier phone<input type="tel" id="supplierPhone" required /></label>
+              <label>Buyer name<input type="text" id="buyerName" required /></label>
+              <label>Buyer phone<input type="tel" id="buyerPhone" required /></label>
+              <label>Item name<input type="text" id="itemName" required /></label>
+              <label>Item price<input type="number" id="itemPrice" min="1" step="1" required /></label>
+            </div>
+            <button type="submit" class="primary-action">Create Quotation</button>
+          </form>
+          <div id="quotationMessage" class="message" hidden></div>
+          <div id="quotationResult" class="result-panel" hidden></div>
+        </article>
+
+        <article class="workflow-card">
+          <div class="section-intro">
+            <p class="section-kicker">Supplier Status</p>
+            <h2>Track quotation financing</h2>
+            <p>Enter your supplier phone number to load quotations and related finance status.</p>
+          </div>
+          <div class="inline-lookup">
+            <label>Supplier phone<input type="tel" id="supplierLookupPhone" /></label>
+            <button id="loadSupplierQuotationsBtn" type="button" class="secondary-action">Load Status</button>
+          </div>
+          <div id="supplierStatusMessage" class="message" hidden></div>
+          <div id="supplierQuotationsList" class="admin-list"></div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

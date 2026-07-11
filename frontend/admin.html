@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Risk Portal | TradeFlow</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="admin">
+  <div class="page-shell">
+    <nav class="top-nav" aria-label="Primary navigation">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">TF</span>
+        <span><strong>TradeFlow</strong><small>Risk Portal</small></span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="supplier.html">Supplier Portal</a>
+        <a href="buyer.html">Buyer Portal</a>
+        <a href="financier.html">Financier Portal</a>
+      </div>
+      <a class="nav-demo-button" href="#admin-workbench" data-scroll>Verify</a>
+    </nav>
+
+    <main class="role-layout">
+      <section class="page-hero compact-hero">
+        <p class="hero-badge">ADMIN / TRADEFLOW RISK PORTAL</p>
+        <h1>Verify transactions before financier review.</h1>
+        <p class="hero-subtext">Run the TradeFlow checklist, request more information, reject risky transactions, or approve verified requests for financier decision.</p>
+        <div class="backend-pill">
+          <span class="pulse-dot" aria-hidden="true"></span>
+          <span id="apiStatus">Checking backend...</span>
+        </div>
+      </section>
+
+      <section class="admin-section" id="admin-workbench">
+        <div class="admin-heading">
+          <div class="section-intro">
+            <p class="section-kicker">Verification Queue</p>
+            <h2>All finance requests</h2>
+          </div>
+          <button id="loadAdminRequestsBtn" type="button" class="secondary-action">Load Requests</button>
+        </div>
+        <div id="adminMessage" class="message" hidden></div>
+        <div id="adminRequests" class="admin-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

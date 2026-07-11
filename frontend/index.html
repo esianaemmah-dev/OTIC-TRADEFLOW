@@ -6,39 +6,38 @@
   <title>TradeFlow by Otic</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body data-page="landing">
   <div class="page-shell">
     <nav class="top-nav" aria-label="Primary navigation">
-      <a class="brand" href="#home" data-scroll>
+      <a class="brand" href="index.html">
         <span class="brand-mark">TF</span>
         <span>
           <strong>TradeFlow</strong>
           <small>by Otic</small>
         </span>
       </a>
-
       <div class="nav-links">
-        <a href="#home" data-scroll>Home</a>
-        <a href="#supplier-portal" data-scroll>Supplier Portal</a>
-        <a href="#buyer-finance" data-scroll>Buyer Finance</a>
-        <a href="#admin-review" data-scroll>Admin Review</a>
-        <a href="#risk-engine" data-scroll>Risk Engine</a>
+        <a href="supplier.html">Supplier Portal</a>
+        <a href="buyer.html">Buyer Portal</a>
+        <a href="financier.html">Financier Portal</a>
+        <a href="admin.html">Admin Portal</a>
       </div>
-
-      <a class="nav-demo-button" href="#supplier-portal" data-scroll>Request Demo</a>
+      <a class="nav-demo-button" href="supplier.html">Start Trade</a>
     </nav>
 
     <main>
-      <section class="hero-section" id="home">
+      <section class="hero-section landing-hero">
         <div class="hero-copy">
-          <p class="hero-badge">AI-POWERED TRADE FINANCE INTELLIGENCE</p>
-          <h1>Transform Trade Financing with Intelligent Risk Assessment</h1>
+          <p class="hero-badge">ROLE-BASED TRADE FINANCE INTELLIGENCE</p>
+          <h1>Verified trade finance for suppliers, buyers, and capital partners.</h1>
           <p class="hero-subtext">
-            TradeFlow helps suppliers, buyers, and financiers complete verified transactions through quotation-based financing, manual review, and intelligent risk routing.
+            TradeFlow connects quotation creation, buyer financing, financier review, and TradeFlow risk verification through separate role-based workflows.
           </p>
           <div class="hero-actions">
-            <a class="primary-action" href="#supplier-portal" data-scroll>Start Supplier Quotation</a>
-            <a class="secondary-action" href="#admin-review" data-scroll>View Admin Dashboard</a>
+            <a class="primary-action" href="supplier.html">Supplier Portal</a>
+            <a class="secondary-action" href="buyer.html">Buyer Portal</a>
+            <a class="secondary-action" href="financier.html">Financier Portal</a>
+            <a class="secondary-action" href="admin.html">Admin Portal</a>
           </div>
           <div class="backend-pill">
             <span class="pulse-dot" aria-hidden="true"></span>
@@ -46,183 +45,33 @@
           </div>
         </div>
 
-        <aside class="command-card" aria-label="TradeFlow analytics preview">
+        <aside class="command-card" aria-label="TradeFlow role overview">
           <div class="command-header">
             <div>
-              <p class="micro-label">Live Intelligence</p>
-              <h2>TradeFlow Intelligence Command Center</h2>
+              <p class="micro-label">TradeFlow Operating Layer</p>
+              <h2>One trade, four focused workspaces</h2>
             </div>
-            <span class="score-ring">86%</span>
+            <span class="score-ring">MVP</span>
           </div>
-
-          <div class="trend-card">
-            <div class="trend-copy">
-              <span>Credit Score Trends</span>
-              <strong>718</strong>
-              <small>Median Score</small>
-            </div>
-            <div class="trend-bars" aria-hidden="true">
-              <span style="height: 34%"></span>
-              <span style="height: 48%"></span>
-              <span style="height: 42%"></span>
-              <span style="height: 68%"></span>
-              <span style="height: 74%"></span>
-              <span style="height: 88%"></span>
-            </div>
-          </div>
-
-          <div class="metric-grid">
-            <div class="metric-tile">
-              <span>Portfolio Health</span>
-              <strong>86%</strong>
-            </div>
-            <div class="metric-tile accent-tile">
-              <span>Decision Lift</span>
-              <strong>27%</strong>
-            </div>
-            <div class="metric-tile">
-              <span>Default Prediction</span>
-              <strong>Low</strong>
-            </div>
-            <div class="metric-tile">
-              <span>Pending Reviews</span>
-              <strong>12</strong>
-            </div>
-          </div>
-
-          <div class="risk-strip">
-            <span>Risk Distribution</span>
-            <div class="risk-track" aria-hidden="true">
-              <i class="risk-low"></i>
-              <i class="risk-mid"></i>
-              <i class="risk-high"></i>
-            </div>
+          <div class="role-stack">
+            <a href="supplier.html" class="role-link-card">
+              <strong>Supplier Portal</strong>
+              <span>Create quotations and track buyer financing status.</span>
+            </a>
+            <a href="buyer.html" class="role-link-card">
+              <strong>Buyer Portal</strong>
+              <span>Review quotations, compare financiers, and submit verification.</span>
+            </a>
+            <a href="financier.html" class="role-link-card">
+              <strong>Financier Portal</strong>
+              <span>Review assigned funding requests and mark simulated payment.</span>
+            </a>
+            <a href="admin.html" class="role-link-card">
+              <strong>Admin / Risk Portal</strong>
+              <span>Run verification checks before financier decisioning.</span>
+            </a>
           </div>
         </aside>
-      </section>
-
-      <section class="risk-section" id="risk-engine">
-        <div class="section-intro narrow">
-          <p class="section-kicker">Risk Engine</p>
-          <h2>Credit intelligence for quotation-backed finance.</h2>
-          <p>
-            This visual preview shows the decisioning layer TradeFlow can grow into while the MVP keeps today&apos;s workflow simple and manual-review ready.
-          </p>
-        </div>
-        <div class="risk-grid">
-          <div class="insight-card">
-            <span class="insight-icon">01</span>
-            <h3>Verified transaction context</h3>
-            <p>Every request is tied to a quotation, supplier, buyer, amount, and financing need.</p>
-          </div>
-          <div class="insight-card">
-            <span class="insight-icon">02</span>
-            <h3>Manual review routing</h3>
-            <p>Admins can approve, reject, or request more information with clear status history.</p>
-          </div>
-          <div class="insight-card">
-            <span class="insight-icon">03</span>
-            <h3>Partner handoff</h3>
-            <p>Approved requests route to a demo SACCO partner for follow-up and verification.</p>
-          </div>
-        </div>
-      </section>
-
-      <section class="portal-grid">
-        <article class="workflow-card" id="supplier-portal">
-          <div class="section-intro">
-            <p class="section-kicker">Supplier Portal</p>
-            <h2>Create a quotation</h2>
-            <p>Generate a buyer-ready quotation and share it into the financing workflow.</p>
-          </div>
-
-          <form id="quotationForm" class="stacked-form">
-            <div class="form-grid">
-              <label>
-                Supplier name
-                <input type="text" id="supplierName" autocomplete="organization" required />
-              </label>
-              <label>
-                Supplier phone
-                <input type="tel" id="supplierPhone" autocomplete="tel" required />
-              </label>
-              <label>
-                Buyer name
-                <input type="text" id="buyerName" autocomplete="name" required />
-              </label>
-              <label>
-                Buyer phone
-                <input type="tel" id="buyerPhone" autocomplete="tel" required />
-              </label>
-              <label>
-                Item name
-                <input type="text" id="itemName" required />
-              </label>
-              <label>
-                Item price
-                <input type="number" id="itemPrice" min="1" step="1" inputmode="numeric" required />
-              </label>
-            </div>
-            <button type="submit" class="primary-action">Create Quotation</button>
-          </form>
-
-          <div id="quotationMessage" class="message" hidden></div>
-          <div id="quotationResult" class="result-panel" hidden></div>
-        </article>
-
-        <article class="workflow-card" id="buyer-finance">
-          <div class="section-intro">
-            <p class="section-kicker">Buyer Financing Portal</p>
-            <h2>Request financing</h2>
-            <p>Use a quotation ID to request financing and define the repayment context.</p>
-          </div>
-
-          <form id="financeForm" class="stacked-form">
-            <div class="form-grid">
-              <label class="full-span">
-                Quotation ID
-                <input type="text" id="quotationId" placeholder="TFQ-000000-0000" required />
-              </label>
-              <label>
-                Amount currently available
-                <input type="number" id="buyerAvailableAmount" min="0" step="1" inputmode="numeric" required />
-              </label>
-              <label>
-                Repayment period
-                <select id="repaymentPeriod" required>
-                  <option value="">Select period</option>
-                  <option value="1 month">1 month</option>
-                  <option value="2 months">2 months</option>
-                  <option value="3 months">3 months</option>
-                  <option value="6 months">6 months</option>
-                  <option value="12 months">12 months</option>
-                </select>
-              </label>
-              <label class="full-span">
-                Reason for financing
-                <textarea id="buyerReason" rows="4" required></textarea>
-              </label>
-            </div>
-            <button type="submit" class="primary-action">Submit Finance Request</button>
-          </form>
-
-          <div id="financeMessage" class="message" hidden></div>
-          <div id="financeResult" class="result-panel" hidden></div>
-        </article>
-      </section>
-
-      <section class="admin-section" id="admin-review">
-        <div class="admin-heading">
-          <div class="section-intro">
-            <p class="section-kicker">Admin Review Dashboard</p>
-            <h2>Finance request command desk</h2>
-            <p>Load financing requests, review trade context, and update status for each request.</p>
-          </div>
-          <button id="loadRequestsBtn" type="button" class="secondary-action">Load Finance Requests</button>
-        </div>
-
-        <div id="adminMessage" class="message" hidden></div>
-        <div id="adminRequests" class="admin-list"></div>
       </section>
     </main>
   </div>
