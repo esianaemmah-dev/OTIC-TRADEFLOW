@@ -1,5 +1,3 @@
-const API_URL = "http://localhost:5000";
-
 const page = document.body.dataset.page;
 const apiStatus = document.getElementById("apiStatus");
 
@@ -52,7 +50,7 @@ async function checkBackendHealth() {
   }
 
   try {
-    const data = await requestJson("/health");
+    const data = await apiGet("/health");
     apiStatus.textContent = data.status === "healthy" ? "Backend online" : "Backend reachable";
   } catch (error) {
     apiStatus.textContent = "Backend offline";
@@ -84,6 +82,7 @@ function initSupplierPortal() {
   const supplierLookupPhone = byId("supplierLookupPhone");
   const loadSupplierQuotationsBtn = byId("loadSupplierQuotationsBtn");
   const supplierQuotationsList = byId("supplierQuotationsList");
+  const supplierCommitmentsList = byId("supplierCommitmentsList");
 
   quotationForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -114,11 +113,7 @@ function initSupplierPortal() {
       setBusy(submitButton, true, "Creating...");
       setMessage(quotationMessage, "info", "Creating quotation...");
 
-      const data = await requestJson("/api/quotations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
+      const data = await apiPost("/api/quotations", payload);
 
       supplierLookupPhone.value = payload.supplierPhone;
       renderSupplierQuotationSuccess(data.quotation, quotationResult);
@@ -135,6 +130,7 @@ function initSupplierPortal() {
   loadSupplierQuotationsBtn.addEventListener("click", () => {
     loadSupplierQuotations(supplierLookupPhone.value);
   });
+  loadSupplierQuotations(supplierLookupPhone.value || "0790872387");
 
   async function loadSupplierQuotations(phone) {
     const supplierPhone = String(phone || "").trim();
@@ -148,12 +144,21 @@ function initSupplierPortal() {
       setBusy(loadSupplierQuotationsBtn, true, "Loading...");
       setMessage(supplierStatusMessage, "info", "Loading supplier quotations...");
       supplierQuotationsList.innerHTML = "";
+      supplierCommitmentsList.innerHTML = "";
 
-      const data = await requestJson(`/api/suppliers/${encodeURIComponent(supplierPhone)}/quotations`);
+      const [data, commitmentsData] = await Promise.all([
+        apiGet(`/api/suppliers/${encodeURIComponent(supplierPhone)}/quotations`),
+        apiGet("/api/payment-commitments")
+      ]);
       const quotations = Array.isArray(data.quotations) ? data.quotations : [];
+      const quotationIds = new Set(quotations.map((quotation) => quotation.id));
+      const commitments = (commitmentsData.paymentCommitments || []).filter((commitment) => {
+        return quotationIds.has(commitment.quotationId);
+      });
 
       if (quotations.length === 0) {
         renderEmptyState(supplierQuotationsList, "No quotations found for this supplier phone.");
+        renderEmptyState(supplierCommitmentsList, "No buyer commitments found for this supplier phone.");
         setMessage(supplierStatusMessage, "success", "No quotations found yet.");
         return;
       }
@@ -161,6 +166,13 @@ function initSupplierPortal() {
       quotations.forEach((quotation) => {
         supplierQuotationsList.appendChild(createSupplierStatusCard(quotation));
       });
+      if (commitments.length === 0) {
+        renderEmptyState(supplierCommitmentsList, "Buyer has not committed payment for these quotations.");
+      } else {
+        commitments.forEach((commitment) => {
+          supplierCommitmentsList.appendChild(createPaymentCommitmentCard(commitment));
+        });
+      }
       setMessage(supplierStatusMessage, "success", `${quotations.length} quotation${quotations.length === 1 ? "" : "s"} loaded.`);
     } catch (error) {
       setMessage(supplierStatusMessage, "error", error.message);
@@ -174,6 +186,12 @@ function initBuyerPortal() {
   const buyerQuotationMessage = byId("buyerQuotationMessage");
   const buyerQuotationDetails = byId("buyerQuotationDetails");
   const buyerAvailableAmount = byId("buyerAvailableAmount");
+  const paymentCommitmentAmount = byId("paymentCommitmentAmount");
+  const paymentMode = byId("paymentMode");
+  const paymentModeNotice = byId("paymentModeNotice");
+  const paymentCommitmentForm = byId("paymentCommitmentForm");
+  const paymentCommitmentMessage = byId("paymentCommitmentMessage");
+  const paymentCommitmentResult = byId("paymentCommitmentResult");
   const requestedFinanceAmountDisplay = byId("requestedFinanceAmountDisplay");
   const showFinanciersBtn = byId("showFinanciersBtn");
   const financierRecommendationMessage = byId("financierRecommendationMessage");
@@ -183,24 +201,30 @@ function initBuyerPortal() {
   const buyerFinanceForm = byId("buyerFinanceForm");
   const financeMessage = byId("financeMessage");
   const financeResult = byId("financeResult");
+  const buyerStatusSummary = byId("buyerStatusSummary");
 
   const state = {
     quotation: null,
     selectedFinancier: null,
+    financeRequest: null,
+    paymentCommitment: null,
+    paymentModes: [],
+    providerMode: "mock",
     requestedFinanceAmount: 0
   };
 
-  const quotationId = new URLSearchParams(window.location.search).get("quotationId");
+  const quotationId = new URLSearchParams(window.location.search).get("quotationId") || "TFQ-506031-4049";
+  buyerAvailableAmount.value = buyerAvailableAmount.value || "50000";
+  paymentCommitmentAmount.value = paymentCommitmentAmount.value || "50000";
 
-  if (!quotationId) {
-    setMessage(buyerQuotationMessage, "error", "Missing quotationId. Open this page from a supplier buyer link.");
-    buyerQuotationDetails.innerHTML = "";
-  } else {
-    loadBuyerQuotation(quotationId);
-  }
+  renderBuyerStatusSummary();
+  loadPaymentModes();
+  loadBuyerQuotation(quotationId);
 
   buyerAvailableAmount.addEventListener("input", updateFinancingGap);
   showFinanciersBtn.addEventListener("click", loadRecommendedFinanciers);
+  paymentCommitmentResult.addEventListener("click", handlePaymentCommitmentAction);
+
   recommendedFinanciers.addEventListener("click", (event) => {
     const button = event.target.closest("[data-financier-id]");
 
@@ -208,7 +232,7 @@ function initBuyerPortal() {
       return;
     }
 
-    const financier = state.financiers.find((item) => item.id === button.dataset.financierId);
+    const financier = state.financiers?.find((item) => item.id === button.dataset.financierId);
 
     if (!financier) {
       return;
@@ -253,6 +277,7 @@ function initBuyerPortal() {
         quotationId: state.quotation.id,
         buyerAvailableAmount: Number(buyerAvailableAmount.value),
         requestedFinanceAmount: state.requestedFinanceAmount,
+        financierId: state.selectedFinancier.id,
         selectedFinancierId: state.selectedFinancier.id,
         selectedFinancierName: state.selectedFinancier.name,
         repaymentPeriod: state.selectedFinancier.repaymentPeriod,
@@ -264,30 +289,104 @@ function initBuyerPortal() {
       setMessage(financeMessage, "info", "Submitting finance request...");
       hideElement(financeResult);
 
-      const data = await requestJson("/api/finance-requests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
+      const data = await apiPost("/api/finance-requests", payload);
 
-      renderFinanceSummary(data.financeRequest, financeResult);
-      setMessage(financeMessage, "success", "Finance request submitted successfully. Status: pending_verification.");
+      state.financeRequest = data.financeRequest;
+      renderFinanceSummary(data.financeRequest, financeResult, data.paymentCommitment);
+      renderBuyerStatusSummary();
+      setMessage(financeMessage, "success", `Finance request submitted to ${state.selectedFinancier.name}.`);
     } catch (error) {
       hideElement(financeResult);
-      setMessage(financeMessage, "error", error.message);
+      setMessage(financeMessage, "error", `Could not submit finance request. ${error.message}`);
     } finally {
       setBusy(submitButton, false);
     }
   });
 
+  paymentCommitmentForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const submitButton = paymentCommitmentForm.querySelector("button[type='submit']");
+
+    try {
+      if (!state.quotation) {
+        throw new Error("Quotation has not loaded yet.");
+      }
+
+      const amountCommitted = Number(paymentCommitmentAmount.value || 0);
+
+      if (amountCommitted <= 0) {
+        throw new Error("Commitment amount must be greater than zero.");
+      }
+
+      setBusy(submitButton, true, "Committing...");
+      setMessage(paymentCommitmentMessage, "info", "Creating provider commitment...");
+
+      const data = await apiPost("/api/payment-commitments/initiate", {
+        quotationId: state.quotation.id,
+        financeRequestId: state.financeRequest?.id,
+        buyerName: state.quotation.buyerName,
+        buyerPhone: state.quotation.buyerPhone,
+        supplierName: state.quotation.supplierName,
+        supplierPhone: state.quotation.supplierPhone,
+        selectedPaymentMode: paymentMode.value,
+        amountCommitted,
+        currency: "UGX"
+      });
+
+      state.paymentCommitment = data.paymentCommitment;
+      state.financeRequest = data.financeRequest || state.financeRequest;
+      renderPaymentCommitmentSummary(state.paymentCommitment, paymentCommitmentResult);
+      renderBuyerStatusSummary();
+      setMessage(paymentCommitmentMessage, "success", "Payment commitment created through provider.");
+    } catch (error) {
+      setMessage(paymentCommitmentMessage, "error", `Payment commitment failed. ${error.message}`);
+    } finally {
+      setBusy(submitButton, false);
+    }
+  });
+
+  async function loadPaymentModes() {
+    try {
+      const data = await apiGet("/api/payment-modes");
+      state.paymentModes = data.paymentModes || [];
+      state.providerMode = data.providerMode || "mock";
+      paymentMode.innerHTML = "";
+
+      state.paymentModes.forEach((mode) => {
+        const option = document.createElement("option");
+        option.value = mode.id;
+        option.textContent = mode.label;
+        paymentMode.appendChild(option);
+      });
+
+      if (state.paymentModes.length === 0) {
+        const option = document.createElement("option");
+        option.value = "mtn_mobile_money";
+        option.textContent = "MTN Mobile Money";
+        paymentMode.appendChild(option);
+      }
+
+      paymentModeNotice.textContent = state.providerMode === "mock"
+        ? "Payment provider is currently mock/provider-ready. No live MTN, Airtel, card, or bank API is connected."
+        : "Payment modes are loaded from configured provider integrations.";
+      renderBuyerStatusSummary();
+    } catch (error) {
+      paymentMode.innerHTML = '<option value="mtn_mobile_money">MTN Mobile Money</option>';
+      paymentModeNotice.textContent = `Could not load payment modes. ${error.message}`;
+    }
+  }
+
   async function loadBuyerQuotation(id) {
     try {
       setMessage(buyerQuotationMessage, "info", "Loading quotation...");
-      const quotation = await requestJson(`/api/quotations/${encodeURIComponent(id)}`);
+      const quotation = await apiGet(`/api/quotations/${encodeURIComponent(id)}`);
       state.quotation = quotation;
       renderBuyerQuotation(quotation, buyerQuotationDetails);
       setMessage(buyerQuotationMessage, "success", "Quotation loaded.");
       updateFinancingGap();
+      await loadRecommendedFinanciers();
+      renderBuyerStatusSummary();
     } catch (error) {
       buyerQuotationDetails.innerHTML = "";
       setMessage(buyerQuotationMessage, "error", error.message);
@@ -299,6 +398,12 @@ function initBuyerPortal() {
     const availableAmount = Number(buyerAvailableAmount.value || 0);
     state.requestedFinanceAmount = Math.max(0, totalAmount - availableAmount);
     requestedFinanceAmountDisplay.textContent = formatCurrency(state.requestedFinanceAmount);
+
+    if (paymentCommitmentAmount && !state.paymentCommitment) {
+      paymentCommitmentAmount.value = Math.max(1, availableAmount || Number(paymentCommitmentAmount.value || 50000));
+    }
+
+    renderBuyerStatusSummary();
   }
 
   async function loadRecommendedFinanciers() {
@@ -318,7 +423,7 @@ function initBuyerPortal() {
       recommendedFinanciers.innerHTML = "";
       verificationCard.hidden = true;
 
-      const data = await requestJson(
+      const data = await apiGet(
         `/api/quotations/${encodeURIComponent(state.quotation.id)}/recommended-financiers?buyerAvailableAmount=${encodeURIComponent(buyerAvailableAmount.value || 0)}`
       );
 
@@ -342,6 +447,50 @@ function initBuyerPortal() {
       setBusy(showFinanciersBtn, false);
     }
   }
+
+  async function handlePaymentCommitmentAction(event) {
+    const button = event.target.closest("[data-payment-action]");
+
+    if (!button || !state.paymentCommitment) {
+      return;
+    }
+
+    try {
+      setBusy(button, true, button.dataset.paymentAction === "verify" ? "Verifying..." : "Cancelling...");
+
+      const data = button.dataset.paymentAction === "verify"
+        ? await apiPost(`/api/payment-commitments/${encodeURIComponent(state.paymentCommitment.id)}/verify`, { simulatedStatus: "successful" })
+        : await apiPatch(`/api/payment-commitments/${encodeURIComponent(state.paymentCommitment.id)}/cancel`, {});
+
+      state.paymentCommitment = data.paymentCommitment;
+      state.financeRequest = data.financeRequest || state.financeRequest;
+      renderPaymentCommitmentSummary(state.paymentCommitment, paymentCommitmentResult);
+      renderBuyerStatusSummary();
+      setMessage(paymentCommitmentMessage, "success", button.dataset.paymentAction === "verify"
+        ? "Provider commitment verified."
+        : "Provider commitment cancelled.");
+    } catch (error) {
+      setMessage(paymentCommitmentMessage, "error", error.message);
+    } finally {
+      setBusy(button, false);
+    }
+  }
+
+  function renderBuyerStatusSummary() {
+    if (!buyerStatusSummary) {
+      return;
+    }
+
+    buyerStatusSummary.innerHTML = "";
+    buyerStatusSummary.appendChild(createDetailsGrid([
+      ["Quotation", state.quotation?.id || "Loading"],
+      ["Selected financier", state.financeRequest?.selectedFinancierName || state.selectedFinancier?.name || "Not selected"],
+      ["Finance request status", state.financeRequest?.status ? createStatusChip(state.financeRequest.status) : "Not submitted"],
+      ["Payment commitment status", createStatusChip(state.paymentCommitment?.status || state.financeRequest?.paymentCommitmentStatus || "not_started")],
+      ["Verification status", state.financeRequest?.verificationStatus || "Not started"],
+      ["Provider mode", state.providerMode === "mock" ? "Mock provider mode" : state.providerMode]
+    ]));
+  }
 }
 
 function initFinancierPortal() {
@@ -364,29 +513,25 @@ function initFinancierPortal() {
 
     const requestId = button.closest(".request-card").dataset.requestId;
     const action = button.dataset.financierAction;
+    const card = button.closest(".request-card");
+    const financierNotes = card.querySelector("[data-financier-notes]")?.value.trim();
 
     try {
       setBusy(button, true, "Updating...");
 
-      if (action === "paid_to_supplier") {
-        await requestJson(`/api/financier/finance-requests/${requestId}/payment`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            paymentStatus: "paid_to_supplier",
-            paymentReference: `TF-PAY-${Date.now()}`
-          })
+      if (action === "verify_commitment") {
+        await apiPost(`/api/payment-commitments/${button.dataset.commitmentId}/verify`, {
+            simulatedStatus: "successful"
+          });
+      } else if (action === "mark_payment") {
+        await apiPatch(`/api/financier/finance-requests/${requestId}/payment`, {
+          paymentStatus: "verified",
+          paymentReference: `TF-PROVIDER-${Date.now()}`
         });
       } else {
-        await requestJson(`/api/financier/finance-requests/${requestId}/decision`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            status: action,
-            financierNotes: action === "approved_by_financier"
-              ? "Funding approved by demo financier."
-              : "Funding rejected by demo financier."
-          })
+        await apiPatch(`/api/financier/finance-requests/${requestId}/decision`, {
+          status: action,
+          financierNotes: financierNotes || getDefaultFinancierNote(action)
         });
       }
 
@@ -401,7 +546,7 @@ function initFinancierPortal() {
 
   async function loadFinanciers() {
     try {
-      const data = await requestJson("/api/financiers");
+      const data = await apiGet("/api/financiers");
       const financiers = data.financiers || [];
       financierSelector.innerHTML = '<option value="">Select financier</option>';
       financiers.forEach((financier) => {
@@ -410,6 +555,11 @@ function initFinancierPortal() {
         option.textContent = financier.name;
         financierSelector.appendChild(option);
       });
+      const defaultFinancier = financiers.find((financier) => financier.id === "FIN-SACCO-001") || financiers[0];
+      if (defaultFinancier) {
+        financierSelector.value = defaultFinancier.id;
+        await loadFinancierRequests(defaultFinancier.id);
+      }
       setMessage(financierMessage, "success", "Select a financier to load assigned requests.");
     } catch (error) {
       setMessage(financierMessage, "error", error.message);
@@ -426,8 +576,12 @@ function initFinancierPortal() {
 
     try {
       setMessage(financierMessage, "info", "Loading assigned requests...");
-      const data = await requestJson(`/api/financiers/${encodeURIComponent(financierId)}/finance-requests`);
+      const [data, commitmentsData] = await Promise.all([
+        apiGet(`/api/financiers/${encodeURIComponent(financierId)}/finance-requests`),
+        apiGet("/api/payment-commitments")
+      ]);
       const requests = data.financeRequests || [];
+      const commitments = commitmentsData.paymentCommitments || [];
 
       if (requests.length === 0) {
         renderEmptyState(financierRequests, "No requests assigned to this financier.");
@@ -436,7 +590,13 @@ function initFinancierPortal() {
       }
 
       requests.forEach((request) => {
-        financierRequests.appendChild(createFinancierRequestCard(request));
+        const linkedCommitment = request.paymentCommitment || commitments.find((commitment) => {
+          return commitment.financeRequestId === request.id || commitment.quotationId === request.quotationId;
+        }) || null;
+        financierRequests.appendChild(createFinancierRequestCard({
+          ...request,
+          paymentCommitment: linkedCommitment
+        }));
       });
       setMessage(financierMessage, "success", `${requests.length} request${requests.length === 1 ? "" : "s"} loaded.`);
     } catch (error) {
@@ -449,34 +609,75 @@ function initAdminPortal() {
   const loadAdminRequestsBtn = byId("loadAdminRequestsBtn");
   const adminMessage = byId("adminMessage");
   const adminRequests = byId("adminRequests");
+  const adminFinanciers = byId("adminFinanciers");
+  const adminPaymentCommitments = byId("adminPaymentCommitments");
+  const adminPaymentLogs = byId("adminPaymentLogs");
 
-  loadAdminRequestsBtn.addEventListener("click", loadAdminRequests);
+  loadAdminRequestsBtn.addEventListener("click", loadAdminDashboard);
   adminRequests.addEventListener("click", handleAdminAction);
-  loadAdminRequests();
+  loadAdminDashboard();
 
-  async function loadAdminRequests() {
+  async function loadAdminDashboard() {
     try {
       setBusy(loadAdminRequestsBtn, true, "Loading...");
-      setMessage(adminMessage, "info", "Loading finance requests...");
+      setMessage(adminMessage, "info", "Loading admin dashboard...");
       adminRequests.innerHTML = "";
+      adminFinanciers.innerHTML = "";
+      adminPaymentCommitments.innerHTML = "";
+      adminPaymentLogs.innerHTML = "";
 
-      const data = await requestJson("/api/admin/finance-requests");
-      const requests = data.financeRequests || [];
+      const [financeData, financiersData, commitmentsData] = await Promise.all([
+        apiGet("/api/admin/finance-requests"),
+        apiGet("/api/financiers"),
+        apiGet("/api/payment-commitments")
+      ]);
+      const requests = financeData.financeRequests || [];
+      const financiers = financiersData.financiers || [];
+      const commitments = commitmentsData.paymentCommitments || [];
+      const mockPaymentLogs = commitmentsData.mockPaymentLogs || [];
+
+      if (financiers.length === 0) {
+        renderEmptyState(adminFinanciers, "No financiers found.");
+      } else {
+        financiers.forEach((financier) => {
+          adminFinanciers.appendChild(createAdminFinancierCard(financier));
+        });
+      }
+
+      if (commitments.length === 0) {
+        renderEmptyState(adminPaymentCommitments, "No payment commitments found.");
+      } else {
+        commitments
+          .slice()
+          .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+          .forEach((commitment) => {
+            adminPaymentCommitments.appendChild(createPaymentCommitmentCard(commitment));
+          });
+      }
 
       if (requests.length === 0) {
         renderEmptyState(adminRequests, "No finance requests found.");
-        setMessage(adminMessage, "success", "No finance requests found.");
-        return;
+      } else {
+        requests
+          .slice()
+          .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+          .forEach((request) => {
+            adminRequests.appendChild(createAdminRequestCard(request));
+          });
       }
 
-      requests
-        .slice()
-        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
-        .forEach((request) => {
-          adminRequests.appendChild(createAdminRequestCard(request));
-        });
+      if (mockPaymentLogs.length === 0) {
+        renderEmptyState(adminPaymentLogs, "No mock provider logs yet.");
+      } else {
+        mockPaymentLogs
+          .slice()
+          .reverse()
+          .forEach((log) => {
+            adminPaymentLogs.appendChild(createMockPaymentLogCard(log));
+          });
+      }
 
-      setMessage(adminMessage, "success", `${requests.length} finance request${requests.length === 1 ? "" : "s"} loaded.`);
+      setMessage(adminMessage, "success", `${requests.length} finance request${requests.length === 1 ? "" : "s"}, ${commitments.length} commitment${commitments.length === 1 ? "" : "s"}, and ${financiers.length} financier${financiers.length === 1 ? "" : "s"} loaded.`);
     } catch (error) {
       setMessage(adminMessage, "error", error.message);
     } finally {
@@ -496,6 +697,7 @@ function initAdminPortal() {
     const action = button.dataset.adminAction;
     const verificationChecks = getVerificationChecksFromCard(card);
     const adminNotes = card.querySelector("[data-admin-notes]").value.trim();
+    const selectedStatus = card.querySelector("[data-admin-status]")?.value;
 
     if (action === "approve" && !areLocalVerificationChecksComplete(verificationChecks)) {
       setMessage(adminMessage, "error", "All verification checks must be complete before financier review.");
@@ -504,18 +706,21 @@ function initAdminPortal() {
 
     try {
       setBusy(button, true, "Saving...");
-      await requestJson(`/api/admin/finance-requests/${requestId}/verification`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      if (action === "update_status") {
+        await apiPatch(`/api/admin/finance-requests/${requestId}/status`, {
+          status: selectedStatus,
+          adminNotes
+        });
+      } else {
+        await apiPatch(`/api/admin/finance-requests/${requestId}/verification`, {
           verificationChecks,
           adminNotes,
           action: action === "save" || action === "approve" ? undefined : action
-        })
-      });
+        });
+      }
 
-      setMessage(adminMessage, "success", "Verification update saved.");
-      await loadAdminRequests();
+      setMessage(adminMessage, "success", "Admin update saved.");
+      await loadAdminDashboard();
     } catch (error) {
       setMessage(adminMessage, "error", error.message);
     } finally {
@@ -582,31 +787,65 @@ function renderBuyerQuotation(quotation, container) {
   ]));
 }
 
-function renderFinanceSummary(financeRequest, container) {
+function renderFinanceSummary(financeRequest, container, paymentCommitment = null) {
+  const commitment = paymentCommitment || financeRequest.paymentCommitment || null;
+
   container.innerHTML = "";
   container.appendChild(createDetailsGrid([
     ["Finance Request ID", financeRequest.id],
     ["Requested finance amount", formatCurrency(financeRequest.requestedFinanceAmount)],
     ["Status", createStatusChip(financeRequest.status)],
+    ["Buyer commitment status", createStatusChip(commitment?.status || financeRequest.paymentCommitmentStatus || "not_started")],
+    ["Commitment amount", commitment ? formatCurrency(commitment.amountCommitted) : "Not started"],
+    ["Commitment provider", commitment?.providerDisplayName || financeRequest.paymentCommitmentProvider || "Not started"],
+    ["Provider reference", commitment?.providerTransactionReference || financeRequest.paymentCommitmentReference || "Not started"],
     ["Risk Score", formatRiskScore(financeRequest.riskScore)],
     ["Risk Level", createRiskLevelChip(financeRequest.riskLevel)],
     ["Recommended Financier Type", financeRequest.recommendedFinancierType || "Not scored"],
     ["Risk Reasons", createRiskReasonsList(financeRequest.riskReasons)]
   ]));
+
+  if (commitment?.id && commitment.status === "pending") {
+    const verifyButton = createButton("Verify Mock Commitment", "secondary-action");
+    verifyButton.type = "button";
+    verifyButton.addEventListener("click", async () => {
+      try {
+        setBusy(verifyButton, true, "Verifying...");
+        setMessage(byId("financeMessage"), "info", "Checking mock provider status...");
+        const data = await apiPost(`/api/payment-commitments/${encodeURIComponent(commitment.id)}/verify`, {
+          simulatedStatus: "successful"
+        });
+        renderFinanceSummary(data.financeRequest || financeRequest, container, data.paymentCommitment);
+        setMessage(byId("financeMessage"), "success", "Provider commitment verified.");
+      } catch (error) {
+        setMessage(byId("financeMessage"), "error", error.message);
+      } finally {
+        setBusy(verifyButton, false);
+      }
+    });
+    container.appendChild(wrapActions(verifyButton));
+  }
+
   container.hidden = false;
 }
 
 function createSupplierStatusCard(quotation) {
   const financeRequest = quotation.financeRequest;
+  const commitment = financeRequest?.paymentCommitment || quotation.paymentCommitment || null;
   const card = document.createElement("article");
   card.className = "request-card";
   card.appendChild(createCardHeader(quotation.id, quotation.buyerName || "Buyer", createStatusChip(quotation.status)));
   card.appendChild(createDetailsGrid([
     ["Quotation status", quotation.status || "created"],
+    ["Buyer name", quotation.buyerName || "Unknown"],
+    ["Buyer phone", quotation.buyerPhone || "Unknown"],
+    ["Items", formatItems(quotation.items)],
     ["Buyer financing status", financeRequest?.status ? createStatusChip(financeRequest.status) : "No finance request yet"],
     ["Selected financier", financeRequest?.selectedFinancierName || financeRequest?.assignedFinancier || "Not selected"],
-    ["Payment / disbursement status", financeRequest?.paymentStatus || "not_paid"],
+    ["Buyer commitment", describeCommitmentStatus(commitment?.status || financeRequest?.paymentCommitmentStatus || quotation.paymentCommitmentStatus || "not_started")],
+    ["Commitment provider", commitment?.providerDisplayName || financeRequest?.paymentCommitmentProvider || "Not started"],
     ["Total amount", formatCurrency(quotation.totalAmount)],
+    ["Buyer available amount", financeRequest ? formatCurrency(financeRequest.buyerAvailableAmount) : "Not submitted"],
     ["Financing needed", financeRequest ? formatCurrency(financeRequest.requestedFinanceAmount) : "Not requested"]
   ]));
   return card;
@@ -633,6 +872,7 @@ function createFinancierCard(financier, requestedFinanceAmount) {
 }
 
 function createFinancierRequestCard(request) {
+  const commitment = request.paymentCommitment || null;
   const card = document.createElement("article");
   card.className = "request-card";
   card.dataset.requestId = request.id;
@@ -641,25 +881,53 @@ function createFinancierRequestCard(request) {
     ["Request ID", request.id],
     ["Quotation ID", request.quotationId],
     ["Buyer name", request.buyerName || "Unknown"],
+    ["Buyer phone", request.buyerPhone || "Unknown"],
     ["Supplier name", request.supplierName || "Unknown"],
+    ["Supplier phone", request.supplierPhone || "Unknown"],
     ["Total amount", formatCurrency(request.totalAmount)],
     ["Buyer contribution", formatCurrency(request.buyerAvailableAmount)],
     ["Requested finance amount", formatCurrency(request.requestedFinanceAmount)],
+    ["Buyer commitment status", createStatusChip(commitment?.status || request.paymentCommitmentStatus || "not_started")],
+    ["Commitment amount", commitment ? formatCurrency(commitment.amountCommitted) : "Not started"],
+    ["Commitment provider", commitment?.providerDisplayName || request.paymentCommitmentProvider || "Not started"],
+    ["Provider reference", commitment?.providerTransactionReference || request.paymentCommitmentReference || "Not started"],
     ["Risk score", formatRiskScore(request.riskScore)],
     ["Risk level", createRiskLevelChip(request.riskLevel)],
     ["Verification status", request.verificationStatus || "pending"],
     ["Status", createStatusChip(request.status)]
   ]));
 
-  card.appendChild(wrapActions(
+  const notesLabel = document.createElement("label");
+  notesLabel.className = "notes-field";
+  notesLabel.textContent = "Financier comment / reason";
+  const notesInput = document.createElement("textarea");
+  notesInput.dataset.financierNotes = "true";
+  notesInput.value = request.financierNotes || "";
+  notesLabel.appendChild(notesInput);
+  card.appendChild(notesLabel);
+
+  const actionButtons = [
     createActionButton("Approve Funding", "approved_by_financier", "primary-action", "financierAction"),
-    createActionButton("Reject Funding", "rejected_by_financier", "danger-action", "financierAction"),
-    createActionButton("Mark as Paid to Supplier", "paid_to_supplier", "warning-action", "financierAction")
-  ));
+    createActionButton("Needs More Info", "needs_more_info", "warning-action", "financierAction"),
+    createActionButton("Reject Funding", "rejected_by_financier", "danger-action", "financierAction")
+  ];
+
+  if (commitment?.id && commitment.status === "pending") {
+    const verifyButton = createActionButton("Verify Commitment", "verify_commitment", "secondary-action", "financierAction");
+    verifyButton.dataset.commitmentId = commitment.id;
+    actionButtons.push(verifyButton);
+  }
+
+  if (commitment?.id) {
+    actionButtons.push(createActionButton("Mark Provider Verified", "mark_payment", "ghost-action", "financierAction"));
+  }
+
+  card.appendChild(wrapActions(...actionButtons));
   return card;
 }
 
 function createAdminRequestCard(request) {
+  const commitment = request.paymentCommitment || null;
   const card = document.createElement("article");
   card.className = "request-card";
   card.dataset.requestId = request.id;
@@ -675,7 +943,9 @@ function createAdminRequestCard(request) {
     ["Risk level", createRiskLevelChip(request.riskLevel)],
     ["Risk reasons", createRiskReasonsList(request.riskReasons)],
     ["Verification status", request.verificationStatus || "pending"],
-    ["Payment status", request.paymentStatus || "not_paid"],
+    ["Buyer commitment status", createStatusChip(commitment?.status || request.paymentCommitmentStatus || "not_started")],
+    ["Commitment provider", commitment?.providerDisplayName || request.paymentCommitmentProvider || "Not started"],
+    ["Provider reference", commitment?.providerTransactionReference || request.paymentCommitmentReference || "Not started"],
     ["Buyer reason", request.buyerReason || "Not provided"]
   ]));
 
@@ -690,13 +960,193 @@ function createAdminRequestCard(request) {
   notesLabel.appendChild(notesInput);
   card.appendChild(notesLabel);
 
+  const statusLabel = document.createElement("label");
+  statusLabel.className = "notes-field";
+  statusLabel.textContent = "Manual status";
+  const statusSelect = document.createElement("select");
+  statusSelect.dataset.adminStatus = "true";
+  getAdminStatusOptions().forEach((status) => {
+    const option = document.createElement("option");
+    option.value = status;
+    option.textContent = formatStatus(status);
+    option.selected = status === request.status;
+    statusSelect.appendChild(option);
+  });
+  statusLabel.appendChild(statusSelect);
+  card.appendChild(statusLabel);
+
   card.appendChild(wrapActions(
     createActionButton("Save Checklist", "save", "secondary-action", "adminAction"),
     createActionButton("Approve for Financier Review", "approve", "primary-action", "adminAction"),
     createActionButton("Request More Information", "request_more_information", "warning-action", "adminAction"),
-    createActionButton("Reject Risky Transaction", "reject", "danger-action", "adminAction")
+    createActionButton("Reject Risky Transaction", "reject", "danger-action", "adminAction"),
+    createActionButton("Update Status", "update_status", "ghost-action", "adminAction")
   ));
   return card;
+}
+
+function createAdminFinancierCard(financier) {
+  const card = document.createElement("article");
+  card.className = "request-card";
+  card.appendChild(createCardHeader(financier.name, financier.type, createRiskAppetiteChip(financier.riskAppetite)));
+  card.appendChild(createDetailsGrid([
+    ["Financier ID", financier.id],
+    ["Max amount", formatCurrency(financier.maxAmount)],
+    ["Interest rate / fee", financier.interestRate],
+    ["Repayment period", financier.repaymentPeriod],
+    ["Benefits", createBenefitsList(financier.benefits)]
+  ]));
+  return card;
+}
+
+function createPaymentCommitmentCard(commitment) {
+  const card = document.createElement("article");
+  card.className = "request-card";
+  card.appendChild(createCardHeader(commitment.id, `Quotation ${commitment.quotationId}`, createStatusChip(commitment.status)));
+  card.appendChild(createDetailsGrid([
+    ["Buyer", commitment.buyerName || "Unknown"],
+    ["Supplier", commitment.supplierName || "Unknown"],
+    ["Finance request", commitment.financeRequestId || "Not linked"],
+    ["Payment mode", formatPaymentMode(commitment.selectedPaymentMode)],
+    ["Amount committed", formatCurrency(commitment.amountCommitted)],
+    ["Provider", commitment.providerDisplayName || commitment.provider || "Unknown"],
+    ["Provider reference", commitment.providerTransactionReference || "Pending"],
+    ["Status", createStatusChip(commitment.status)]
+  ]));
+  return card;
+}
+
+function createMockPaymentLogCard(log) {
+  const card = document.createElement("article");
+  card.className = "request-card";
+  card.appendChild(createCardHeader(log.id, log.action || "Provider event", createStatusChip(log.status)));
+  card.appendChild(createDetailsGrid([
+    ["Commitment ID", log.commitmentId],
+    ["Quotation ID", log.quotationId],
+    ["Finance request", log.financeRequestId || "Not linked"],
+    ["Provider", log.provider || "mock"],
+    ["Provider status", log.providerStatus || "Unknown"],
+    ["Provider reference", log.providerTransactionReference || "Pending"],
+    ["Created", formatDateTime(log.createdAt)]
+  ]));
+  return card;
+}
+
+function renderPaymentCommitmentSummary(commitment, container) {
+  container.innerHTML = "";
+
+  if (!commitment) {
+    renderEmptyState(container, "No payment commitment has been created yet.");
+    container.hidden = false;
+    return;
+  }
+
+  container.appendChild(createDetailsGrid([
+    ["Commitment ID", commitment.id],
+    ["Amount committed", formatCurrency(commitment.amountCommitted)],
+    ["Payment mode", formatPaymentMode(commitment.selectedPaymentMode)],
+    ["Provider", commitment.providerDisplayName || commitment.provider || "Unknown"],
+    ["Provider reference", commitment.providerTransactionReference || "Pending"],
+    ["Status", createStatusChip(commitment.status)]
+  ]));
+
+  const actions = [];
+
+  if (commitment.status === "pending") {
+    actions.push(createActionButton("Verify Commitment", "verify", "secondary-action", "paymentAction"));
+    actions.push(createActionButton("Cancel Commitment", "cancel", "danger-action", "paymentAction"));
+  }
+
+  if (actions.length > 0) {
+    container.appendChild(wrapActions(...actions));
+  }
+
+  container.hidden = false;
+}
+
+function describeCommitmentStatus(status) {
+  const normalized = String(status || "not_started");
+
+  if (normalized === "verified") {
+    return "Buyer commitment verified";
+  }
+
+  if (normalized === "pending") {
+    return "Buyer commitment pending";
+  }
+
+  if (normalized === "failed") {
+    return "Buyer commitment failed";
+  }
+
+  if (normalized === "cancelled") {
+    return "Buyer commitment cancelled";
+  }
+
+  return "Buyer has not committed payment";
+}
+
+function formatItems(items) {
+  if (!Array.isArray(items) || items.length === 0) {
+    return "No items listed";
+  }
+
+  return items.map((item) => {
+    const quantity = Number(item.quantity || 1);
+    const name = item.name || "Item";
+    return `${quantity} x ${name}`;
+  }).join(", ");
+}
+
+function formatPaymentMode(mode) {
+  const labels = {
+    mtn_mobile_money: "MTN Mobile Money",
+    airtel_money: "Airtel Money",
+    bank_transfer: "Bank Transfer",
+    card: "Card / future provider"
+  };
+
+  return labels[mode] || formatStatus(mode);
+}
+
+function formatDateTime(value) {
+  if (!value) {
+    return "Not recorded";
+  }
+
+  return new Date(value).toLocaleString();
+}
+
+function getDefaultFinancierNote(action) {
+  if (action === "approved_by_financier") {
+    return "Funding approved by demo financier.";
+  }
+
+  if (action === "needs_more_info") {
+    return "More information requested by demo financier.";
+  }
+
+  return "Funding rejected by demo financier.";
+}
+
+function getAdminStatusOptions() {
+  return [
+    "pending_review",
+    "approved",
+    "rejected",
+    "pending_verification",
+    "more_information_required",
+    "verified_by_tradeflow",
+    "approved_for_financier_review",
+    "rejected_by_tradeflow",
+    "approved_by_financier",
+    "rejected_by_financier",
+    "needs_more_info",
+    "provider_commitment_verified",
+    "delivery_pending",
+    "repayment_active",
+    "completed"
+  ];
 }
 
 function createVerificationChecklist(verificationChecks = {}) {
@@ -739,32 +1189,6 @@ function getVerificationChecksFromCard(card) {
 
 function areLocalVerificationChecksComplete(checks) {
   return Object.values(checks).every(Boolean);
-}
-
-async function requestJson(path, options = {}) {
-  let response;
-
-  try {
-    response = await fetch(`${API_URL}${path}`, options);
-  } catch (error) {
-    throw new Error(`Cannot reach the TradeFlow backend at ${API_URL}. Start it with npm.cmd run dev, then try again.`);
-  }
-
-  const data = await readJson(response);
-
-  if (!response.ok) {
-    throw new Error(data.message || `Request failed with status ${response.status}.`);
-  }
-
-  return data;
-}
-
-async function readJson(response) {
-  try {
-    return await response.json();
-  } catch (error) {
-    return {};
-  }
 }
 
 function byId(id) {

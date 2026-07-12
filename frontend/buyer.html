@@ -26,7 +26,7 @@
       <section class="page-hero compact-hero">
         <p class="hero-badge">BUYER PORTAL</p>
         <h1>Review your quotation and choose a financier.</h1>
-        <p class="hero-subtext">Open this page with a supplier link like <strong>buyer.html?quotationId=TFQ-...</strong>.</p>
+        <p class="hero-subtext">Open this page with a supplier link like <strong>buyer.html?quotationId=TFQ-...</strong> and submit your provider-verified commitment.</p>
         <div class="backend-pill">
           <span class="pulse-dot" aria-hidden="true"></span>
           <span id="apiStatus">Checking backend...</span>
@@ -76,7 +76,7 @@
               <label class="full-span">Business purpose<textarea id="businessPurpose" rows="4" required></textarea></label>
               <label class="consent-row full-span">
                 <input type="checkbox" id="consent" required />
-                <span>I consent to TradeFlow sharing this request with the selected financier for verification.</span>
+                <span>I consent to TradeFlow sharing this request and provider commitment status with the selected financier for verification.</span>
               </label>
             </div>
             <button type="submit" class="primary-action">Submit Finance Request</button>
@@ -84,10 +84,36 @@
           <div id="financeMessage" class="message" hidden></div>
           <div id="financeResult" class="result-panel" hidden></div>
         </article>
+
+        <article class="workflow-card full-width-card">
+          <div class="section-intro">
+            <p class="section-kicker">Provider Commitment</p>
+            <h2>Commit buyer contribution</h2>
+            <p id="paymentModeNotice">Payment modes load from the TradeFlow backend.</p>
+          </div>
+          <form id="paymentCommitmentForm" class="stacked-form">
+            <div class="form-grid">
+              <label>Payment mode<select id="paymentMode" required></select></label>
+              <label>Commitment amount<input type="number" id="paymentCommitmentAmount" min="1" step="1" value="50000" required /></label>
+            </div>
+            <button type="submit" class="primary-action">Commit Payment</button>
+          </form>
+          <div id="paymentCommitmentMessage" class="message" hidden></div>
+          <div id="paymentCommitmentResult" class="result-panel" hidden></div>
+        </article>
+
+        <article class="workflow-card full-width-card">
+          <div class="section-intro">
+            <p class="section-kicker">Buyer Status</p>
+            <h2>Current request summary</h2>
+          </div>
+          <div id="buyerStatusSummary" class="result-panel"></div>
+        </article>
       </section>
     </main>
   </div>
 
+  <script src="api.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

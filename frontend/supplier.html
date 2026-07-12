@@ -27,7 +27,7 @@
         <p class="hero-badge">SUPPLIER PORTAL</p>
         <h1>Create a quotation and track financing progress.</h1>
         <p class="hero-subtext">
-          Generate a buyer link, share it on WhatsApp, and monitor whether financing has moved through verification, financier review, and payment.
+          Generate a buyer link, share it on WhatsApp, and monitor whether financing has moved through verification, provider commitment, and financier review.
         </p>
         <div class="backend-pill">
           <span class="pulse-dot" aria-hidden="true"></span>
@@ -63,16 +63,26 @@
             <p>Enter your supplier phone number to load quotations and related finance status.</p>
           </div>
           <div class="inline-lookup">
-            <label>Supplier phone<input type="tel" id="supplierLookupPhone" /></label>
-            <button id="loadSupplierQuotationsBtn" type="button" class="secondary-action">Load Status</button>
+            <label>Supplier phone<input type="tel" id="supplierLookupPhone" value="0790872387" /></label>
+            <button id="loadSupplierQuotationsBtn" type="button" class="secondary-action">Refresh Status</button>
           </div>
           <div id="supplierStatusMessage" class="message" hidden></div>
           <div id="supplierQuotationsList" class="admin-list"></div>
+        </article>
+
+        <article class="workflow-card full-width-card">
+          <div class="section-intro">
+            <p class="section-kicker">Payment Commitments</p>
+            <h2>Buyer commitment confirmations</h2>
+            <p>Supplier can view provider commitment status only.</p>
+          </div>
+          <div id="supplierCommitmentsList" class="admin-list"></div>
         </article>
       </section>
     </main>
   </div>
 
+  <script src="api.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -2,7 +2,9 @@
 
 OTIC TradeFlow is a role-based trade financing MVP designed to help buyers complete supplier transactions when they cannot pay the full amount upfront.
 
-The platform allows suppliers to create verified quotations and share buyer financing links through WhatsApp. Buyers can open the link, view the quotation, compare recommended financiers, select a preferred financier, and submit verification information. TradeFlow then supports buyer, supplier, quotation, and risk checks before the selected financier reviews the request and pays the supplier directly.
+The platform allows suppliers to create verified quotations and share buyer financing links through WhatsApp. Buyers can open the link, view the quotation, compare recommended financiers, select a preferred financier, and submit verification information. TradeFlow then supports buyer, supplier, quotation, risk checks, and provider-verified buyer payment commitments before the selected financier reviews the request.
+
+TradeFlow does not hold escrow funds in this MVP. Buyer contributions are represented as payment commitments verified through licensed payment providers or banks. Until official credentials are available, the backend uses mock provider adapters.
 
 ## Project Status
 
@@ -25,9 +27,9 @@ Instead, it verifies a real trade transaction first:
 7. Buyer selects a preferred financier.
 8. Buyer submits verification details.
 9. TradeFlow admin/risk team verifies the transaction.
-10. Financier approves or rejects funding.
-11. If approved, financier pays the supplier directly.
-12. Buyer repays the financier.
+10. Buyer contribution is recorded as a provider-verified commitment.
+11. Financier approves or rejects funding.
+12. Buyer repays the financier under the financier's terms.
 
 ## Role-Based Portals
 
@@ -41,7 +43,7 @@ The supplier can:
 - Generate buyer financing links
 - Share quotation links through WhatsApp
 - Track buyer financing status
-- See payment/disbursement progress
+- See buyer payment commitment progress
 
 ### Buyer Portal
 
@@ -53,6 +55,7 @@ The buyer can:
 - View financing gap
 - Compare recommended financiers
 - Select a preferred financier
+- Choose a payment mode for the buyer contribution commitment
 - Submit verification information
 - Track financing request status
 
@@ -64,7 +67,7 @@ The financier can:
 - Review buyer and quotation details
 - See risk score and verification status
 - Approve or reject funding
-- Mark payment as paid to supplier
+- See buyer provider commitment status
 
 ### Admin / Risk Portal
 
@@ -86,6 +89,7 @@ The TradeFlow admin or risk team can:
 - Frontend: HTML, CSS, Vanilla JavaScript
 - Backend: Node.js, Express.js
 - Database: Local JSON file
+- Payments: mock provider adapters until licensed provider credentials are configured
 - Current environment: Local development
 - Future deployment target: Azure
 

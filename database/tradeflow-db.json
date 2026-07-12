@@ -100,7 +100,9 @@
       ],
       "totalAmount": 1500000,
       "status": "created",
-      "createdAt": "2026-07-11T13:28:26.031Z"
+      "createdAt": "2026-07-11T13:28:26.031Z",
+      "paymentCommitmentStatus": "verified",
+      "updatedAt": "2026-07-12T16:07:42.762Z"
     },
     {
       "id": "TFQ-823539-4542",
@@ -118,6 +120,94 @@
       "totalAmount": 1500000,
       "status": "created",
       "createdAt": "2026-07-11T13:50:23.539Z"
+    },
+    {
+      "id": "TFQ-679900-3021",
+      "supplierName": "Uganda Clays Limited",
+      "supplierPhone": "0200300450",
+      "buyerName": "Phaneroo",
+      "buyerPhone": "020044499",
+      "items": [
+        {
+          "name": "Roof Tiles",
+          "quantity": 1,
+          "price": 25000000
+        }
+      ],
+      "totalAmount": 25000000,
+      "status": "created",
+      "createdAt": "2026-07-11T18:47:59.900Z"
+    },
+    {
+      "id": "TFQ-033090-5131",
+      "supplierName": "Uganda Clays",
+      "supplierPhone": "0200300999",
+      "buyerName": "Phaneroo",
+      "buyerPhone": "0200459765",
+      "items": [
+        {
+          "name": "Roof tiles",
+          "quantity": 1,
+          "price": 25000000
+        }
+      ],
+      "totalAmount": 25000000,
+      "status": "created",
+      "createdAt": "2026-07-11T18:53:53.090Z"
+    },
+    {
+      "id": "TFQ-157175-2001",
+      "supplierName": "Uganda Clays",
+      "supplierPhone": "0200300756",
+      "buyerName": "Phaneroo",
+      "buyerPhone": "0200467147",
+      "items": [
+        {
+          "name": "Roof Tiles",
+          "quantity": 1,
+          "price": 25000000
+        }
+      ],
+      "totalAmount": 25000000,
+      "status": "created",
+      "createdAt": "2026-07-11T18:55:57.175Z"
+    },
+    {
+      "id": "TFQ-008771-8415",
+      "supplierName": "kgvox",
+      "supplierPhone": "O923897436",
+      "buyerName": "HGVOX",
+      "buyerPhone": "098626",
+      "items": [
+        {
+          "name": "UOYVP",
+          "quantity": 1,
+          "price": 8
+        }
+      ],
+      "totalAmount": 8,
+      "status": "created",
+      "createdAt": "2026-07-12T13:13:28.771Z",
+      "paymentCommitmentStatus": "not_started"
+    },
+    {
+      "id": "TFQ-831396-9746",
+      "supplierName": "E-SQUARE GROUP",
+      "supplierPhone": "0768556512",
+      "buyerName": "ESIANA EMMANUEL",
+      "buyerPhone": "0749340868",
+      "items": [
+        {
+          "name": "ROLLS ROYCE CULLINAN",
+          "quantity": 1,
+          "price": 1500000000
+        }
+      ],
+      "totalAmount": 1500000000,
+      "status": "created",
+      "createdAt": "2026-07-12T16:30:31.396Z",
+      "paymentCommitmentStatus": "verified",
+      "updatedAt": "2026-07-12T16:35:18.386Z"
     }
   ],
   "financeRequests": [
@@ -133,12 +223,26 @@
       "requestedFinanceAmount": 1000000,
       "repaymentPeriod": "3 months",
       "buyerReason": "I need the laptop for business work and can repay in installments.",
-      "status": "approved",
+      "status": "more_information_required",
       "riskLevel": "manual_review_required",
       "assignedFinancier": "Demo SACCO Partner",
-      "adminNotes": "Buyer and supplier require verification before disbursement.",
+      "adminNotes": "Buyer and supplier require verification before provider commitment verification.",
       "createdAt": "2026-07-11T10:58:57.279Z",
-      "updatedAt": "2026-07-11T11:33:21.315Z"
+      "updatedAt": "2026-07-12T13:42:04.359Z",
+      "verificationChecks": {
+        "buyerIdentityVerified": false,
+        "phoneVerified": false,
+        "supplierVerified": false,
+        "quotationVerified": false,
+        "priceChecked": false,
+        "fraudFlagsChecked": false,
+        "repaymentAbilityChecked": false
+      },
+      "verificationStatus": "needs_more_information",
+      "paymentCommitmentStatus": "not_started",
+      "paymentCommitmentId": null,
+      "paymentCommitmentProvider": "",
+      "paymentCommitmentReference": ""
     },
     {
       "id": "TFR-582248-6389",
@@ -155,9 +259,13 @@
       "status": "approved",
       "riskLevel": "manual_review_required",
       "assignedFinancier": "Demo SACCO Partner",
-      "adminNotes": "Buyer and supplier require manual verification before disbursement.",
+      "adminNotes": "Buyer and supplier require manual verification before provider commitment verification.",
       "createdAt": "2026-07-11T10:59:42.248Z",
-      "updatedAt": "2026-07-11T11:53:43.495Z"
+      "updatedAt": "2026-07-11T11:53:43.495Z",
+      "paymentCommitmentStatus": "not_started",
+      "paymentCommitmentId": null,
+      "paymentCommitmentProvider": "",
+      "paymentCommitmentReference": ""
     },
     {
       "id": "TFR-572162-3644",
@@ -175,7 +283,11 @@
       "riskLevel": "manual_review_required",
       "assignedFinancier": null,
       "adminNotes": "",
-      "createdAt": "2026-07-11T11:32:52.162Z"
+      "createdAt": "2026-07-11T11:32:52.162Z",
+      "paymentCommitmentStatus": "not_started",
+      "paymentCommitmentId": null,
+      "paymentCommitmentProvider": "",
+      "paymentCommitmentReference": ""
     },
     {
       "id": "TFR-744569-3272",
@@ -192,9 +304,13 @@
       "status": "approved",
       "riskLevel": "manual_review_required",
       "assignedFinancier": "Demo SACCO Partner",
-      "adminNotes": "Buyer and supplier require verification before disbursement.",
+      "adminNotes": "Buyer and supplier require verification before provider commitment verification.",
       "createdAt": "2026-07-11T11:52:24.569Z",
-      "updatedAt": "2026-07-11T12:20:45.513Z"
+      "updatedAt": "2026-07-11T12:20:45.513Z",
+      "paymentCommitmentStatus": "not_started",
+      "paymentCommitmentId": null,
+      "paymentCommitmentProvider": "",
+      "paymentCommitmentReference": ""
     },
     {
       "id": "TFR-426343-7234",
@@ -213,7 +329,11 @@
       "assignedFinancier": null,
       "adminNotes": "More buyer or supplier verification information is required.",
       "createdAt": "2026-07-11T12:20:26.344Z",
-      "updatedAt": "2026-07-11T12:20:40.054Z"
+      "updatedAt": "2026-07-11T12:20:40.054Z",
+      "paymentCommitmentStatus": "not_started",
+      "paymentCommitmentId": null,
+      "paymentCommitmentProvider": "",
+      "paymentCommitmentReference": ""
     },
     {
       "id": "TFR-967290-8793",
@@ -229,7 +349,7 @@
       "buyerReason": "I wanna show Ugandans the goodness of the Lord",
       "status": "approved",
       "assignedFinancier": "Demo SACCO Partner",
-      "adminNotes": "Buyer and supplier require verification before disbursement.",
+      "adminNotes": "Buyer and supplier require verification before provider commitment verification.",
       "createdAt": "2026-07-11T12:46:07.290Z",
       "riskScore": 60,
       "riskLevel": "medium",
@@ -238,7 +358,119 @@
         "Repayment period is 6 months or more."
       ],
       "recommendedFinancierType": "SACCO / Microfinance Partner",
-      "updatedAt": "2026-07-11T12:46:49.885Z"
+      "updatedAt": "2026-07-11T12:46:49.885Z",
+      "paymentCommitmentStatus": "not_started",
+      "paymentCommitmentId": null,
+      "paymentCommitmentProvider": "",
+      "paymentCommitmentReference": ""
+    },
+    {
+      "id": "TFR-399249-6193",
+      "quotationId": "TFQ-157175-2001",
+      "supplierName": "Uganda Clays",
+      "supplierPhone": "0200300756",
+      "buyerName": "Phaneroo",
+      "buyerPhone": "0200467147",
+      "totalAmount": 25000000,
+      "buyerAvailableAmount": 20000000,
+      "requestedFinanceAmount": 5000000,
+      "selectedFinancierId": "FIN-BANK-001",
+      "selectedFinancierName": "Bank Trade Finance Partner",
+      "selectedFinancierType": "Bank",
+      "selectedFinancierMaxAmount": 50000000,
+      "repaymentPeriod": "3-12 months",
+      "buyerReason": "Make Uganda First World",
+      "verificationInfo": {
+        "nationalIdOrNIN": "CM87480HKOI970K",
+        "phoneNumber": "0200578986",
+        "location": "Kisaasi",
+        "incomeSource": "Sales",
+        "monthlyIncomeEstimate": "50000000",
+        "businessPurpose": "Make Uganda First World",
+        "consent": true
+      },
+      "verificationChecks": {
+        "buyerIdentityVerified": false,
+        "phoneVerified": false,
+        "supplierVerified": false,
+        "quotationVerified": false,
+        "priceChecked": false,
+        "fraudFlagsChecked": false,
+        "repaymentAbilityChecked": false
+      },
+      "verificationStatus": "pending",
+      "paymentStatus": "not_started",
+      "paymentReference": "",
+      "status": "pending_verification",
+      "assignedFinancier": "Bank Trade Finance Partner",
+      "adminNotes": "",
+      "financierNotes": "",
+      "createdAt": "2026-07-11T18:59:59.249Z",
+      "riskScore": 70,
+      "riskLevel": "medium",
+      "riskReasons": [
+        "Requested finance amount is between 1,000,000 and 5,000,000 UGX.",
+        "Repayment period is 6 months or more."
+      ],
+      "recommendedFinancierType": "SACCO / Microfinance Partner",
+      "paymentCommitmentStatus": "not_started",
+      "paymentCommitmentId": null,
+      "paymentCommitmentProvider": "",
+      "paymentCommitmentReference": ""
+    },
+    {
+      "id": "TFR-443526-1036",
+      "quotationId": "TFQ-157175-2001",
+      "supplierName": "Uganda Clays",
+      "supplierPhone": "0200300756",
+      "buyerName": "Phaneroo",
+      "buyerPhone": "0200467147",
+      "totalAmount": 25000000,
+      "buyerAvailableAmount": 20000000,
+      "requestedFinanceAmount": 5000000,
+      "selectedFinancierId": "FIN-BANK-001",
+      "selectedFinancierName": "Bank Trade Finance Partner",
+      "selectedFinancierType": "Bank",
+      "selectedFinancierMaxAmount": 50000000,
+      "repaymentPeriod": "3-12 months",
+      "buyerReason": "Make Uganda First World",
+      "verificationInfo": {
+        "nationalIdOrNIN": "CM87480HKOI970K",
+        "phoneNumber": "0200578986",
+        "location": "Kisaasi",
+        "incomeSource": "Sales",
+        "monthlyIncomeEstimate": "50000000",
+        "businessPurpose": "Make Uganda First World",
+        "consent": true
+      },
+      "verificationChecks": {
+        "buyerIdentityVerified": false,
+        "phoneVerified": false,
+        "supplierVerified": false,
+        "quotationVerified": false,
+        "priceChecked": false,
+        "fraudFlagsChecked": false,
+        "repaymentAbilityChecked": false
+      },
+      "verificationStatus": "pending",
+      "paymentStatus": "not_started",
+      "paymentReference": "",
+      "status": "pending_verification",
+      "assignedFinancier": "Bank Trade Finance Partner",
+      "adminNotes": "",
+      "financierNotes": "",
+      "createdAt": "2026-07-11T19:00:43.526Z",
+      "riskScore": 70,
+      "riskLevel": "medium",
+      "riskReasons": [
+        "Requested finance amount is between 1,000,000 and 5,000,000 UGX.",
+        "Repayment period is 6 months or more."
+      ],
+      "recommendedFinancierType": "SACCO / Microfinance Partner",
+      "paymentCommitmentStatus": "not_started",
+      "paymentCommitmentId": null,
+      "paymentCommitmentProvider": "",
+      "paymentCommitmentReference": ""
     }
   ],
   "suppliers": [],
@@ -285,6 +517,138 @@
         "Formal trade finance"
       ],
       "riskAppetite": "low"
+    }
+  ],
+  "paymentCommitments": [
+    {
+      "id": "TFC-319596-2942",
+      "quotationId": "TFQ-506031-4049",
+      "financeRequestId": null,
+      "buyerName": "Emmah",
+      "supplierName": "ABC Electronics",
+      "selectedPaymentMode": "mtn_mobile_money",
+      "amountCommitted": 50000,
+      "currency": "UGX",
+      "provider": "mock",
+      "providerDisplayName": "Mock licensed payment provider",
+      "providerTransactionReference": "MOCK-MTN-MOBILE-MONEY-1783872319597",
+      "providerStatus": "successful",
+      "status": "verified",
+      "createdAt": "2026-07-12T16:05:19.596Z",
+      "verifiedAt": "2026-07-12T16:07:42.762Z",
+      "cancelledAt": null,
+      "rawProviderResponse": {
+        "mode": "mock",
+        "action": "verifyPaymentStatus",
+        "commitmentId": "TFC-319596-2942",
+        "simulatedAt": "2026-07-12T16:07:42.762Z"
+      },
+      "updatedAt": "2026-07-12T16:07:42.762Z"
+    },
+    {
+      "id": "TFC-108864-0581",
+      "quotationId": "TFQ-831396-9746",
+      "financeRequestId": null,
+      "buyerName": "ESIANA EMMANUEL",
+      "supplierName": "E-SQUARE GROUP",
+      "selectedPaymentMode": "bank_transfer",
+      "amountCommitted": 1480000000,
+      "currency": "UGX",
+      "provider": "mock",
+      "providerDisplayName": "Mock licensed payment provider",
+      "providerTransactionReference": "MOCK-BANK-TRANSFER-1783874108864",
+      "providerStatus": "successful",
+      "status": "verified",
+      "createdAt": "2026-07-12T16:35:08.864Z",
+      "verifiedAt": "2026-07-12T16:35:18.386Z",
+      "cancelledAt": null,
+      "rawProviderResponse": {
+        "mode": "mock",
+        "action": "verifyPaymentStatus",
+        "commitmentId": "TFC-108864-0581",
+        "simulatedAt": "2026-07-12T16:35:18.386Z"
+      },
+      "updatedAt": "2026-07-12T16:35:18.386Z"
+    }
+  ],
+  "mockPaymentLogs": [
+    {
+      "id": "PAYLOG-319597-3631",
+      "commitmentId": "TFC-319596-2942",
+      "quotationId": "TFQ-506031-4049",
+      "financeRequestId": null,
+      "provider": "mock",
+      "action": "initiatePaymentCommitment",
+      "status": "pending",
+      "providerStatus": "pending",
+      "providerTransactionReference": "MOCK-MTN-MOBILE-MONEY-1783872319597",
+      "rawProviderResponse": {
+        "mode": "mock",
+        "action": "initiatePaymentCommitment",
+        "commitmentId": "TFC-319596-2942",
+        "selectedPaymentMode": "mtn_mobile_money",
+        "amountCommitted": 50000,
+        "currency": "UGX",
+        "simulatedAt": "2026-07-12T16:05:19.597Z"
+      },
+      "createdAt": "2026-07-12T16:05:19.597Z"
+    },
+    {
+      "id": "PAYLOG-462762-0843",
+      "commitmentId": "TFC-319596-2942",
+      "quotationId": "TFQ-506031-4049",
+      "financeRequestId": null,
+      "provider": "mock",
+      "action": "verifyPaymentStatus",
+      "status": "verified",
+      "providerStatus": "successful",
+      "providerTransactionReference": "MOCK-MTN-MOBILE-MONEY-1783872319597",
+      "rawProviderResponse": {
+        "mode": "mock",
+        "action": "verifyPaymentStatus",
+        "commitmentId": "TFC-319596-2942",
+        "simulatedAt": "2026-07-12T16:07:42.762Z"
+      },
+      "createdAt": "2026-07-12T16:07:42.762Z"
+    },
+    {
+      "id": "PAYLOG-108865-7111",
+      "commitmentId": "TFC-108864-0581",
+      "quotationId": "TFQ-831396-9746",
+      "financeRequestId": null,
+      "provider": "mock",
+      "action": "initiatePaymentCommitment",
+      "status": "pending",
+      "providerStatus": "pending",
+      "providerTransactionReference": "MOCK-BANK-TRANSFER-1783874108864",
+      "rawProviderResponse": {
+        "mode": "mock",
+        "action": "initiatePaymentCommitment",
+        "commitmentId": "TFC-108864-0581",
+        "selectedPaymentMode": "bank_transfer",
+        "amountCommitted": 1480000000,
+        "currency": "UGX",
+        "simulatedAt": "2026-07-12T16:35:08.864Z"
+      },
+      "createdAt": "2026-07-12T16:35:08.865Z"
+    },
+    {
+      "id": "PAYLOG-118386-0086",
+      "commitmentId": "TFC-108864-0581",
+      "quotationId": "TFQ-831396-9746",
+      "financeRequestId": null,
+      "provider": "mock",
+      "action": "verifyPaymentStatus",
+      "status": "verified",
+      "providerStatus": "successful",
+      "providerTransactionReference": "MOCK-BANK-TRANSFER-1783874108864",
+      "rawProviderResponse": {
+        "mode": "mock",
+        "action": "verifyPaymentStatus",
+        "commitmentId": "TFC-108864-0581",
+        "simulatedAt": "2026-07-12T16:35:18.386Z"
+      },
+      "createdAt": "2026-07-12T16:35:18.386Z"
     }
   ]
 }
