@@ -3,6 +3,7 @@ const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
 require("dotenv").config();
+const paymentService = require("./services/payments/paymentService");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -66,16 +67,27 @@ const FINANCE_REQUEST_STATUSES = [
   "rejected_by_tradeflow",
   "approved_by_financier",
   "rejected_by_financier",
-  "paid_to_supplier",
+  "needs_more_info",
+  "provider_commitment_verified",
   "delivery_pending",
   "repayment_active",
   "completed"
+];
+
+const PAYMENT_COMMITMENT_STATUSES = [
+  "not_started",
+  "pending",
+  "verified",
+  "failed",
+  "cancelled"
 ];
 
 function createInitialData() {
   return {
     quotations: [],
     financeRequests: [],
+    paymentCommitments: [],
+    mockPaymentLogs: [],
     suppliers: [],
     buyers: [],
     financiers: DEMO_FINANCIERS
@@ -107,9 +119,31 @@ function writeDatabase(data) {
 function normalizeDatabase(database) {
   let changed = false;
 
-  ["quotations", "financeRequests", "suppliers", "buyers", "financiers"].forEach((key) => {
+  ["quotations", "financeRequests", "paymentCommitments", "mockPaymentLogs", "suppliers", "buyers", "financiers"].forEach((key) => {
     if (!Array.isArray(database[key])) {
       database[key] = [];
+      changed = true;
+    }
+  });
+
+  database.financeRequests.forEach((request) => {
+    if (request.paymentCommitmentStatus === undefined) {
+      request.paymentCommitmentStatus = mapLegacyPaymentStatus(request.paymentStatus);
+      changed = true;
+    }
+
+    if (request.paymentCommitmentId === undefined) {
+      request.paymentCommitmentId = null;
+      changed = true;
+    }
+
+    if (request.paymentCommitmentProvider === undefined) {
+      request.paymentCommitmentProvider = "";
+      changed = true;
+    }
+
+    if (request.paymentCommitmentReference === undefined) {
+      request.paymentCommitmentReference = request.paymentReference || "";
       changed = true;
     }
   });
@@ -146,6 +180,182 @@ function normalizePhone(phone) {
 
 function getDefaultVerificationChecks() {
   return { ...DEFAULT_VERIFICATION_CHECKS };
+}
+
+function nowIso() {
+  return new Date().toISOString();
+}
+
+function mapLegacyPaymentStatus(paymentStatus) {
+  if (paymentStatus === "paid_to_supplier" || paymentStatus === "provider_commitment_verified") {
+    return "verified";
+  }
+
+  if (PAYMENT_COMMITMENT_STATUSES.includes(paymentStatus)) {
+    return paymentStatus;
+  }
+
+  return "not_started";
+}
+
+function getPaymentCommitmentsForRequest(database, financeRequest = {}) {
+  return database.paymentCommitments.filter((commitment) => {
+    return commitment.financeRequestId === financeRequest.id || commitment.quotationId === financeRequest.quotationId;
+  });
+}
+
+function getLatestPaymentCommitment(database, financeRequest = {}) {
+  const commitments = getPaymentCommitmentsForRequest(database, financeRequest);
+  return commitments[commitments.length - 1] || null;
+}
+
+function applyCommitmentToFinanceRequest(financeRequest, commitment) {
+  if (!financeRequest || !commitment) {
+    return;
+  }
+
+  financeRequest.paymentCommitmentId = commitment.id;
+  financeRequest.paymentCommitmentStatus = commitment.status;
+  financeRequest.paymentCommitmentProvider = commitment.providerDisplayName || commitment.provider || "";
+  financeRequest.paymentCommitmentReference = commitment.providerTransactionReference || "";
+  financeRequest.paymentStatus = commitment.status;
+  financeRequest.paymentReference = commitment.providerTransactionReference || financeRequest.paymentReference || "";
+}
+
+function enrichFinanceRequest(database, financeRequest) {
+  const paymentCommitment = getLatestPaymentCommitment(database, financeRequest);
+
+  if (!paymentCommitment) {
+    return {
+      ...financeRequest,
+      paymentCommitment: null,
+      paymentCommitmentStatus: financeRequest.paymentCommitmentStatus || mapLegacyPaymentStatus(financeRequest.paymentStatus)
+    };
+  }
+
+  return {
+    ...financeRequest,
+    paymentCommitment,
+    paymentCommitmentStatus: paymentCommitment.status,
+    paymentCommitmentProvider: paymentCommitment.providerDisplayName || paymentCommitment.provider || "",
+    paymentCommitmentReference: paymentCommitment.providerTransactionReference || ""
+  };
+}
+
+function getLatestPaymentCommitmentForQuotation(database, quotationId) {
+  const commitments = database.paymentCommitments.filter((commitment) => commitment.quotationId === quotationId);
+  return commitments[commitments.length - 1] || null;
+}
+
+function findFinanceRequestForCommitment(database, commitment = {}) {
+  return database.financeRequests.find((request) => request.id === commitment.financeRequestId) ||
+    database.financeRequests
+      .filter((request) => request.quotationId === commitment.quotationId)
+      .slice(-1)[0] ||
+    null;
+}
+
+function applyCommitmentToRelatedRecords(database, commitment) {
+  const quotation = database.quotations.find((item) => item.id === commitment.quotationId);
+  const financeRequest = findFinanceRequestForCommitment(database, commitment);
+
+  if (quotation) {
+    quotation.paymentCommitmentStatus = commitment.status;
+    quotation.updatedAt = nowIso();
+  }
+
+  if (financeRequest) {
+    applyCommitmentToFinanceRequest(financeRequest, commitment);
+    financeRequest.updatedAt = nowIso();
+  }
+
+  return financeRequest;
+}
+
+function recordPaymentLog(database, commitment, action, providerResponse) {
+  database.mockPaymentLogs.push({
+    id: generateId("PAYLOG"),
+    commitmentId: commitment.id,
+    quotationId: commitment.quotationId,
+    financeRequestId: commitment.financeRequestId || null,
+    provider: providerResponse.provider || commitment.provider || "mock",
+    action,
+    status: providerResponse.status || commitment.status,
+    providerStatus: providerResponse.providerStatus || "",
+    providerTransactionReference: providerResponse.providerTransactionReference || commitment.providerTransactionReference || "",
+    rawProviderResponse: providerResponse.raw || null,
+    createdAt: nowIso()
+  });
+}
+
+async function initiatePaymentCommitmentRecord(database, input = {}) {
+  const quotation = database.quotations.find((item) => item.id === input.quotationId);
+  const amountCommitted = Number(input.amountCommitted || 0);
+
+  if (!quotation) {
+    const error = new Error("Quotation not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (amountCommitted <= 0) {
+    const error = new Error("Buyer commitment amount must be greater than zero.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (amountCommitted > Number(quotation.totalAmount || 0)) {
+    const error = new Error("Buyer commitment cannot exceed quotation amount.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (!paymentService.findPaymentMode(input.selectedPaymentMode)) {
+    const error = new Error("Unsupported payment mode.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const commitment = {
+    id: generateId("TFC"),
+    quotationId: quotation.id,
+    financeRequestId: input.financeRequestId || null,
+    buyerName: input.buyerName || quotation.buyerName || "",
+    supplierName: input.supplierName || quotation.supplierName || "",
+    selectedPaymentMode: input.selectedPaymentMode,
+    amountCommitted,
+    currency: input.currency || "UGX",
+    provider: "mock",
+    providerDisplayName: "",
+    providerTransactionReference: "",
+    providerStatus: "pending",
+    status: "pending",
+    createdAt: nowIso(),
+    verifiedAt: null,
+    cancelledAt: null
+  };
+
+  const providerResponse = await paymentService.initiatePaymentCommitment({
+    ...input,
+    commitmentId: commitment.id,
+    quotationId: quotation.id,
+    amountCommitted,
+    currency: commitment.currency
+  });
+
+  commitment.provider = providerResponse.provider || commitment.provider;
+  commitment.providerDisplayName = providerResponse.providerDisplayName || "";
+  commitment.providerTransactionReference = providerResponse.providerTransactionReference || "";
+  commitment.providerStatus = providerResponse.providerStatus || providerResponse.status || "pending";
+  commitment.status = providerResponse.status || "pending";
+  commitment.rawProviderResponse = providerResponse.raw || null;
+
+  database.paymentCommitments.push(commitment);
+  quotation.paymentCommitmentStatus = commitment.status;
+  quotation.updatedAt = nowIso();
+  recordPaymentLog(database, commitment, "initiatePaymentCommitment", providerResponse);
+
+  return commitment;
 }
 
 function areVerificationChecksComplete(verificationChecks = {}) {
@@ -315,6 +525,13 @@ app.get("/api/financiers", (req, res) => {
   });
 });
 
+app.get("/api/payment-modes", (req, res) => {
+  res.json({
+    providerMode: process.env.PAYMENT_PROVIDER_MODE || "mock",
+    paymentModes: paymentService.getPaymentModes()
+  });
+});
+
 app.post("/api/quotations", (req, res) => {
   const {
     supplierName,
@@ -401,12 +618,16 @@ app.get("/api/suppliers/:phone/quotations", (req, res) => {
     .filter((quotation) => normalizePhone(quotation.supplierPhone) === supplierPhone)
     .map((quotation) => {
       const relatedFinanceRequests = db.financeRequests.filter((request) => request.quotationId === quotation.id);
-      const latestFinanceRequest = relatedFinanceRequests[relatedFinanceRequests.length - 1] || null;
+      const enrichedFinanceRequests = relatedFinanceRequests.map((request) => enrichFinanceRequest(db, request));
+      const latestFinanceRequest = enrichedFinanceRequests[enrichedFinanceRequests.length - 1] || null;
+      const latestPaymentCommitment = getLatestPaymentCommitmentForQuotation(db, quotation.id);
 
       return {
         ...quotation,
+        paymentCommitment: latestPaymentCommitment,
+        paymentCommitmentStatus: latestPaymentCommitment?.status || quotation.paymentCommitmentStatus || "not_started",
         financeRequest: latestFinanceRequest,
-        financeRequests: relatedFinanceRequests
+        financeRequests: enrichedFinanceRequests
       };
     });
 
@@ -416,16 +637,18 @@ app.get("/api/suppliers/:phone/quotations", (req, res) => {
   });
 });
 
-app.post("/api/finance-requests", (req, res) => {
+app.post("/api/finance-requests", async (req, res) => {
   const {
     quotationId,
     buyerAvailableAmount,
+    financierId,
     selectedFinancierId,
     selectedFinancierName,
     requestedFinanceAmount,
     repaymentPeriod,
     buyerReason,
-    verificationInfo
+    verificationInfo,
+    paymentCommitment
   } = req.body;
 
   if (!quotationId || buyerAvailableAmount === undefined || !repaymentPeriod) {
@@ -452,7 +675,8 @@ app.post("/api/finance-requests", (req, res) => {
     });
   }
 
-  const selectedFinancier = findFinancierByIdOrName(db.financiers, selectedFinancierId, selectedFinancierName);
+  const finalSelectedFinancierId = selectedFinancierId || financierId;
+  const selectedFinancier = findFinancierByIdOrName(db.financiers, finalSelectedFinancierId, selectedFinancierName);
   const finalRequestedFinanceAmount = Number(requestedFinanceAmount) > 0
     ? Number(requestedFinanceAmount)
     : calculatedRequestedFinanceAmount;
@@ -472,7 +696,7 @@ app.post("/api/finance-requests", (req, res) => {
     totalAmount: quotation.totalAmount,
     buyerAvailableAmount: availableAmount,
     requestedFinanceAmount: finalRequestedFinanceAmount,
-    selectedFinancierId: selectedFinancier?.id || selectedFinancierId || null,
+    selectedFinancierId: selectedFinancier?.id || finalSelectedFinancierId || null,
     selectedFinancierName: selectedFinancier?.name || selectedFinancierName || null,
     selectedFinancierType: selectedFinancier?.type || null,
     selectedFinancierMaxAmount: selectedFinancier?.maxAmount || null,
@@ -481,7 +705,11 @@ app.post("/api/finance-requests", (req, res) => {
     verificationInfo: finalVerificationInfo,
     verificationChecks: getDefaultVerificationChecks(),
     verificationStatus: "pending",
-    paymentStatus: "not_paid",
+    paymentCommitmentId: null,
+    paymentCommitmentStatus: "not_started",
+    paymentCommitmentProvider: "",
+    paymentCommitmentReference: "",
+    paymentStatus: "not_started",
     paymentReference: "",
     status: "pending_verification",
     assignedFinancier: selectedFinancier?.name || selectedFinancierName || null,
@@ -496,12 +724,41 @@ app.post("/api/finance-requests", (req, res) => {
     ...riskAssessment
   };
 
+  let buyerPaymentCommitment = null;
+  const requestedPaymentCommitment = paymentCommitment && typeof paymentCommitment === "object"
+    ? paymentCommitment
+    : null;
+
+  if (requestedPaymentCommitment) {
+    const amountCommitted = Number(requestedPaymentCommitment.amountCommitted || 0);
+
+    if (amountCommitted > 0) {
+      try {
+        buyerPaymentCommitment = await initiatePaymentCommitmentRecord(db, {
+          quotationId,
+          financeRequestId: financeRequest.id,
+          buyerName: quotation.buyerName,
+          supplierName: quotation.supplierName,
+          selectedPaymentMode: requestedPaymentCommitment.selectedPaymentMode,
+          amountCommitted,
+          currency: requestedPaymentCommitment.currency || "UGX"
+        });
+        applyCommitmentToFinanceRequest(financeRequest, buyerPaymentCommitment);
+      } catch (error) {
+        return res.status(error.statusCode || 400).json({
+          message: error.message
+        });
+      }
+    }
+  }
+
   db.financeRequests.push(financeRequest);
   writeDatabase(db);
 
   res.status(201).json({
     message: "Finance request submitted successfully",
-    financeRequest
+    financeRequest: enrichFinanceRequest(db, financeRequest),
+    paymentCommitment: buyerPaymentCommitment
   });
 });
 
@@ -510,8 +767,143 @@ app.get("/api/admin/finance-requests", (req, res) => {
 
   res.json({
     total: db.financeRequests.length,
-    financeRequests: db.financeRequests
+    financeRequests: db.financeRequests.map((request) => enrichFinanceRequest(db, request))
   });
+});
+
+app.get("/api/payment-commitments", (req, res) => {
+  const db = readDatabase();
+
+  res.json({
+    total: db.paymentCommitments.length,
+    paymentCommitments: db.paymentCommitments,
+    mockPaymentLogs: db.mockPaymentLogs.slice(-50)
+  });
+});
+
+app.post("/api/payment-commitments/initiate", async (req, res) => {
+  const db = readDatabase();
+
+  try {
+    const commitment = await initiatePaymentCommitmentRecord(db, req.body);
+    const financeRequest = applyCommitmentToRelatedRecords(db, commitment);
+
+    writeDatabase(db);
+
+    res.status(201).json({
+      message: "Buyer payment commitment initiated through provider.",
+      paymentCommitment: commitment,
+      financeRequest: financeRequest ? enrichFinanceRequest(db, financeRequest) : null
+    });
+  } catch (error) {
+    res.status(error.statusCode || 400).json({
+      message: error.message
+    });
+  }
+});
+
+app.get("/api/payment-commitments/:commitmentId", (req, res) => {
+  const db = readDatabase();
+  const commitment = db.paymentCommitments.find((item) => item.id === req.params.commitmentId);
+
+  if (!commitment) {
+    return res.status(404).json({
+      message: "Payment commitment not found"
+    });
+  }
+
+  const financeRequest = findFinanceRequestForCommitment(db, commitment);
+
+  res.json({
+    paymentCommitment: commitment,
+    financeRequest: financeRequest ? enrichFinanceRequest(db, financeRequest) : null
+  });
+});
+
+app.post("/api/payment-commitments/:commitmentId/verify", async (req, res) => {
+  const db = readDatabase();
+  const commitment = db.paymentCommitments.find((item) => item.id === req.params.commitmentId);
+
+  if (!commitment) {
+    return res.status(404).json({
+      message: "Payment commitment not found"
+    });
+  }
+
+  if (commitment.status === "cancelled") {
+    return res.status(400).json({
+      message: "Cancelled commitments cannot be verified."
+    });
+  }
+
+  try {
+    const providerResponse = await paymentService.verifyPaymentStatus({
+      commitment,
+      simulatedStatus: req.body?.simulatedStatus
+    });
+
+    commitment.provider = providerResponse.provider || commitment.provider;
+    commitment.providerDisplayName = providerResponse.providerDisplayName || commitment.providerDisplayName || "";
+    commitment.providerTransactionReference = providerResponse.providerTransactionReference || commitment.providerTransactionReference || "";
+    commitment.providerStatus = providerResponse.providerStatus || providerResponse.status || commitment.providerStatus || "";
+    commitment.status = providerResponse.status || commitment.status;
+    commitment.rawProviderResponse = providerResponse.raw || commitment.rawProviderResponse || null;
+    commitment.verifiedAt = commitment.status === "verified" ? providerResponse.verifiedAt || nowIso() : commitment.verifiedAt;
+    commitment.updatedAt = nowIso();
+
+    recordPaymentLog(db, commitment, "verifyPaymentStatus", providerResponse);
+    const financeRequest = applyCommitmentToRelatedRecords(db, commitment);
+
+    writeDatabase(db);
+
+    res.json({
+      message: "Payment commitment verification updated.",
+      paymentCommitment: commitment,
+      financeRequest: financeRequest ? enrichFinanceRequest(db, financeRequest) : null
+    });
+  } catch (error) {
+    res.status(error.statusCode || 400).json({
+      message: error.message
+    });
+  }
+});
+
+app.patch("/api/payment-commitments/:commitmentId/cancel", async (req, res) => {
+  const db = readDatabase();
+  const commitment = db.paymentCommitments.find((item) => item.id === req.params.commitmentId);
+
+  if (!commitment) {
+    return res.status(404).json({
+      message: "Payment commitment not found"
+    });
+  }
+
+  try {
+    const providerResponse = await paymentService.cancelPaymentCommitment({
+      commitment
+    });
+
+    commitment.providerStatus = providerResponse.providerStatus || "cancelled";
+    commitment.status = "cancelled";
+    commitment.cancelledAt = nowIso();
+    commitment.updatedAt = nowIso();
+    commitment.rawProviderResponse = providerResponse.raw || commitment.rawProviderResponse || null;
+
+    recordPaymentLog(db, commitment, "cancelPaymentCommitment", providerResponse);
+    const financeRequest = applyCommitmentToRelatedRecords(db, commitment);
+
+    writeDatabase(db);
+
+    res.json({
+      message: "Payment commitment cancelled.",
+      paymentCommitment: commitment,
+      financeRequest: financeRequest ? enrichFinanceRequest(db, financeRequest) : null
+    });
+  } catch (error) {
+    res.status(error.statusCode || 400).json({
+      message: error.message
+    });
+  }
 });
 
 app.get("/api/financiers/:financierId/finance-requests", (req, res) => {
@@ -532,7 +924,7 @@ app.get("/api/financiers/:financierId/finance-requests", (req, res) => {
 
   res.json({
     financier,
-    financeRequests
+    financeRequests: financeRequests.map((request) => enrichFinanceRequest(db, request))
   });
 });
 
@@ -582,7 +974,7 @@ app.patch("/api/admin/finance-requests/:id/verification", (req, res) => {
 
 app.patch("/api/financier/finance-requests/:id/decision", (req, res) => {
   const { status, financierNotes } = req.body;
-  const allowedStatuses = ["approved_by_financier", "rejected_by_financier"];
+  const allowedStatuses = ["approved_by_financier", "rejected_by_financier", "needs_more_info"];
 
   if (!allowedStatuses.includes(status)) {
     return res.status(400).json({
@@ -605,7 +997,10 @@ app.patch("/api/financier/finance-requests/:id/decision", (req, res) => {
     });
   }
 
-  request.status = status;
+  request.status = status === "needs_more_info" ? "needs_more_info" : status;
+  request.verificationStatus = status === "needs_more_info"
+    ? "needs_more_information"
+    : request.verificationStatus;
   request.financierNotes = financierNotes || request.financierNotes || "";
   request.financierDecisionAt = new Date().toISOString();
   request.updatedAt = new Date().toISOString();
@@ -618,10 +1013,10 @@ app.patch("/api/financier/finance-requests/:id/decision", (req, res) => {
   });
 });
 
-app.patch("/api/financier/finance-requests/:id/payment", (req, res) => {
+app.patch("/api/financier/finance-requests/:id/payment", async (req, res) => {
   const { paymentStatus, paymentReference } = req.body;
 
-  if (paymentStatus !== "paid_to_supplier") {
+  if (!["paid_to_supplier", "provider_commitment_verified", "verified"].includes(paymentStatus)) {
     return res.status(400).json({
       message: "Invalid payment status"
     });
@@ -636,17 +1031,41 @@ app.patch("/api/financier/finance-requests/:id/payment", (req, res) => {
     });
   }
 
-  request.paymentStatus = "paid_to_supplier";
-  request.paymentReference = paymentReference || request.paymentReference || "";
-  request.status = "paid_to_supplier";
-  request.paidToSupplierAt = new Date().toISOString();
-  request.updatedAt = new Date().toISOString();
+  const commitment = getLatestPaymentCommitment(db, request);
+
+  if (!commitment) {
+    return res.status(400).json({
+      message: "No buyer payment commitment exists for this finance request."
+    });
+  }
+
+  try {
+    const providerResponse = await paymentService.verifyPaymentStatus({
+      commitment,
+      simulatedStatus: "successful"
+    });
+
+    commitment.providerTransactionReference = paymentReference || providerResponse.providerTransactionReference || commitment.providerTransactionReference || "";
+    commitment.providerStatus = providerResponse.providerStatus || "successful";
+    commitment.status = providerResponse.status || "verified";
+    commitment.verifiedAt = nowIso();
+    commitment.updatedAt = nowIso();
+    commitment.rawProviderResponse = providerResponse.raw || commitment.rawProviderResponse || null;
+
+    recordPaymentLog(db, commitment, "legacyFinancierPaymentRoute", providerResponse);
+    applyCommitmentToRelatedRecords(db, commitment);
+  } catch (error) {
+    return res.status(error.statusCode || 400).json({
+      message: error.message
+    });
+  }
 
   writeDatabase(db);
 
   res.json({
-    message: "Supplier payment marked successfully",
-    financeRequest: request
+    message: "Provider commitment verification recorded successfully",
+    financeRequest: enrichFinanceRequest(db, request),
+    paymentCommitment: commitment
   });
 });
 

@@ -10,8 +10,9 @@ The current system supports:
 2. Buyer financing request
 3. Admin review
 4. Finance request approval, rejection, or request for more information
-5. Local JSON database storage
-6. Frontend dashboard connected to backend API
+5. Buyer payment commitments through mock provider adapters
+6. Local JSON database storage
+7. Frontend dashboard connected to backend API
 
 ## Current Tech Stack
 
@@ -30,11 +31,18 @@ The current system supports:
 - POST /api/finance-requests
 - GET /api/admin/finance-requests
 - PATCH /api/admin/finance-requests/:id/status
+- GET /api/payment-modes
+- GET /api/payment-commitments
+- POST /api/payment-commitments/initiate
+- GET /api/payment-commitments/:commitmentId
+- POST /api/payment-commitments/:commitmentId/verify
+- PATCH /api/payment-commitments/:commitmentId/cancel
 
 ## Completed Workflow
 
 Supplier creates quotation  
 Buyer requests financing  
+Buyer contribution is recorded as a provider-verified commitment  
 Admin reviews request  
 Admin approves, rejects, or asks for more information  
 Financier can be assigned manually  

@@ -36,17 +36,46 @@
       <section class="admin-section" id="admin-workbench">
         <div class="admin-heading">
           <div class="section-intro">
-            <p class="section-kicker">Verification Queue</p>
-            <h2>All finance requests</h2>
+            <p class="section-kicker">Admin Dashboard</p>
+            <h2>Finance requests, providers, and commitments</h2>
           </div>
-          <button id="loadAdminRequestsBtn" type="button" class="secondary-action">Load Requests</button>
+          <button id="loadAdminRequestsBtn" type="button" class="secondary-action">Refresh Dashboard</button>
         </div>
         <div id="adminMessage" class="message" hidden></div>
+
+        <div class="dashboard-grid">
+          <article>
+            <div class="section-intro">
+              <p class="section-kicker">Financiers</p>
+              <h3>Available partners</h3>
+            </div>
+            <div id="adminFinanciers" class="admin-list"></div>
+          </article>
+          <article>
+            <div class="section-intro">
+              <p class="section-kicker">Payment Commitments</p>
+              <h3>Provider status</h3>
+            </div>
+            <div id="adminPaymentCommitments" class="admin-list"></div>
+          </article>
+        </div>
+
+        <div class="section-intro admin-subheading">
+          <p class="section-kicker">Verification Queue</p>
+          <h3>All finance requests</h3>
+        </div>
         <div id="adminRequests" class="admin-list"></div>
+
+        <div class="section-intro admin-subheading">
+          <p class="section-kicker">Mock Logs</p>
+          <h3>Provider simulation log</h3>
+        </div>
+        <div id="adminPaymentLogs" class="admin-list"></div>
       </section>
     </main>
   </div>
 
+  <script src="api.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
